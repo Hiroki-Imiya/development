@@ -23,8 +23,7 @@ public class JavaTokenizer {
             int end = scanner.getCurrentTokenEndPosition();
             int line = scanner.getLineNumber(start);
             String token = new String(scanner.getCurrentTokenSource());
-            String tokenDesc = String.format("%4d |%4d |%4d |%4d | %s", tokenType,
-                    start, end, line, token);
+            String tokenDesc = String.format("%4d |%4d |%4d |%4d | %s", tokenType,start, end, line, token);
             System.out.println(tokenDesc);
         }
     }
