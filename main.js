@@ -1,16 +1,12 @@
-const fs = require('fs');
-
 //開発支援プログラムのメイン部分
 
-//ファイルからjavaのコードを読み取る
-// Read the file contents
-fs.readFile('/tmp.java', 'utf8', (err, data) => {
-    if (err) {
-        console.error(err);
-        return;
-    }
+//0~10の乱数を生成
+var a=Math.floor(Math.random()*11);
 
-    // Process the Java code
-    // You can perform any operations on the code here
-    console.log(data);
-});
+if(a==0){
+    console.log(a);
+    console.log("aは0です");
+}else{
+    console.log(a);
+    console.log("aは0ではありません");
+}
