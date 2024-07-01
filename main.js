@@ -13,6 +13,9 @@ let index=0;
 //実行ボタンが押されたときの処理
 runButton.addEventListener('click', function () {
 
+    //.を読み込んだ際にtokenに保存している文字列が数字だけかどうかを判定するための変数
+    let isNumber=true;
+
     //入力されたプログラムを取得
     let code = editor.getSession().getValue();
 
@@ -25,30 +28,51 @@ runButton.addEventListener('click', function () {
 
         //しきりとなる文字かどうかを判定
         if(isDelimiter(str)){
+
+            //文字列の場合
+            if(str=="\""){
+                i++;
+                //次の"が見つかるまでtokenに追加
+                while(code.charAt(i)!="\""){
+                    token+=code.charAt(i);
+                    i++;
+                }
+                //文字列のトークン番号である37
+                tokenNums.push(37);
+                console.log(37+" "+token);
+                token="";
+                continue;
+            }
+
             //tokenに内容がある場合はトークンを識別してtokenNumsに格納
             if(token!=""){
-                //文字列の場合
-                if(str=="\""){
-                    token+=str;
-                    i++;
-                    //次の"が見つかるまでtokenに追加
-                    while(code.charAt(i)!="\""){
-                        token+=code.charAt(i);
-                        i++;
+                if(str=="." ){       //今の読み込んでいる文字がコンマの場合
+                    //tokenの内容が数字だけかどうかを判定
+                    for(let j=0;j<token.length;j++){
+                        if(isNaN(token.charAt(j))){
+                            isNumber=false;
+                            break;
+                        }
                     }
-                    //文字列のトークン番号である37
-                    tokenNums.push(37);
-                    token="";
-                }else if(str=="." && Number()!=NaN){       //今の読み込んでいる文字がコンマで、tokenが数字の場合(実数の場合)
-                    token+=str;
+                    //tokenの内容が数字だけの場合
+                    if(isNumber){
+                        token+=str;
+                        continue;
+                    }else{
+                        //トークンの型を出力
+                        let tmp=identifyToken(token);
+                        tokenNums.push(tmp);
+                        token=""
+                    }
                 }else{
+                    //トークンの型を出力
                     let tmp=identifyToken(token);
                     tokenNums.push(tmp);
                     token=""
                 }
             }
-            //改行または空白の場合はスキップ
-            if(str=="\n" || str==" "){
+            //改行または空白またはタブの場合はスキップ
+            if(str=="\n" || str==" " || str=="\t"){
                 continue;
             }else{
                 //トークンを識別
@@ -75,7 +99,7 @@ runButton.addEventListener('click', function () {
 
 //文字の仕切りとなる文字かどうかを判定する関数
 function isDelimiter(str){
-    if(str=="\n" || str==" " || str=="." || str=="(" || str==")" || str=="{" || str=="}" || str=="[" || str=="]" || str=="<" || str==">" || str=="," || str=="." || str=="|" || str=="&" || str=="'" || str=="\"" || str==";" || str=="=" || str=="+" || str=="-" || str=="*" || str=="/" || str=="%"){
+    if(str=="\n" || str==" " || str=="(" || str==")" || str=="{" || str=="}" || str=="[" || str=="]" || str=="<" || str==">" || str=="," || str=="." || str=="|" || str=="&" || str=="'" || str=="\"" || str==";" || str=="=" || str=="+" || str=="-" || str=="*" || str=="/" || str=="%"){
         return true;
     }else{
         return false;
@@ -83,112 +107,111 @@ function isDelimiter(str){
 }
 
 //トークンを識別する関数
-function identifyToken(token){
+function identifyToken(tmp_token){
     let tokenNum;
 
     //トークンごとに番号を割り振る
-    if(token=="print"){
+    if(tmp_token=="print"){
         tokenNum=2;
-    }else if(token=="println"){
+    }else if(tmp_token=="println"){
         tokenNum=3;
-    }else if(token=="printf"){
+    }else if(tmp_token=="printf"){
         tokenNum=4;
-    }else if(token=="import"){
+    }else if(tmp_token=="import"){
         tokenNum=5;
-    }else if(token=="class"){
+    }else if(tmp_token=="class"){
         tokenNum=6;
-    }else if(token=="if"){
+    }else if(tmp_token=="if"){
         tokenNum=7;
-    }else if(token=="else"){
+    }else if(tmp_token=="else"){
         tokenNum=8;
-    }else if(token=="while"){
+    }else if(tmp_token=="while"){
         tokenNum=9;
-    }else if(token=="for"){
+    }else if(tmp_token=="for"){
         tokenNum=10;
-    }else if(token=="return"){
+    }else if(tmp_token=="return"){
         tokenNum=11;
-    }else if(token=="break"){
+    }else if(tmp_token=="break"){
         tokenNum=12;
-    }else if(token=="new"){
+    }else if(tmp_token=="new"){
         tokenNum=13;
-    }else if(token=="public"){
+    }else if(tmp_token=="public"){
         tokenNum=14;
-    }else if(token=="private"){
+    }else if(tmp_token=="private"){
         tokenNum=15;
-    }else if(token=="static"){
+    }else if(tmp_token=="static"){
         tokenNum=17;
-    }else if(token=="int"){
+    }else if(tmp_token=="int"){
         tokenNum=25;
-    }else if(token=="byte"){
+    }else if(tmp_token=="byte"){
         tokenNum=26;
-    }else if(token=="short"){
+    }else if(tmp_token=="short"){
         tokenNum=27;
-    }else if(token=="long"){
+    }else if(tmp_token=="long"){
         tokenNum=28;
-    }else if(token=="float"){
+    }else if(tmp_token=="float"){
         tokenNum=29;
-    }else if(token=="double"){
+    }else if(tmp_token=="double"){
         tokenNum=30;
-    }else if(token=="boolean"){
+    }else if(tmp_token=="boolean"){
         tokenNum=31;
-    }else if(token=="char"){
+    }else if(tmp_token=="char"){
         tokenNum=32;
-    }else if(token=="String"){
+    }else if(tmp_token=="String"){
         tokenNum=33;
-    }else if(token=="ArrayList"){
+    }else if(tmp_token=="ArrayList"){
         tokenNum=34;
-    }else if(token=="true"){
+    }else if(tmp_token=="true"){
         tokenNum=38;
-    }else if(token=="false"){
+    }else if(tmp_token=="false"){
         tokenNum=39;
-    }else if(token=="void"){
+    }else if(tmp_token=="void"){
         tokenNum=40;
-    }else if(token=="+"){
+    }else if(tmp_token=="+"){
         tokenNum=50;
-    }else if(token=="-"){
+    }else if(tmp_token=="-"){
         tokenNum=51;
-    }else if(token=="*"){
+    }else if(tmp_token=="*"){
         tokenNum=52;
-    }else if(token=="/"){
+    }else if(tmp_token=="/"){
         tokenNum=53;
-    }else if(token=="%"){
+    }else if(tmp_token=="%"){
         tokenNum=54;
-    }else if(token=="("){
+    }else if(tmp_token=="("){
         tokenNum=55;
-    }else if(token==")"){
+    }else if(tmp_token==")"){
         tokenNum=56;
-    }else if(token=="{"){
+    }else if(tmp_token=="{"){
         tokenNum=57;
-    }else if(token=="}"){
+    }else if(tmp_token=="}"){
         tokenNum=58;
-    }else if(token=="["){
+    }else if(tmp_token=="["){
         tokenNum=59;
-    }else if(token=="]"){
+    }else if(tmp_token=="]"){
         tokenNum=60;
-    }else if(token=="<"){
+    }else if(tmp_token=="<"){
         tokenNum=61;
-    }else if(token==">"){
+    }else if(tmp_token==">"){
         tokenNum=62;
-    }else if(token==","){
+    }else if(tmp_token==","){
         tokenNum=63;
-    }else if(token=="."){
+    }else if(tmp_token=="."){
         tokenNum=64;
-    }else if(token=="|"){
+    }else if(tmp_token=="|"){
         tokenNum=65;
-    }else if(token=="&"){
+    }else if(tmp_token=="&"){
         tokenNum=66;
-    }else if(token=="'"){
+    }else if(tmp_token=="'"){
         tokenNum=67;
-    }else if(token=="\""){
+    }else if(tmp_token=="\""){
         tokenNum=68;
-    }else if(token==";"){
+    }else if(tmp_token==";"){
         tokenNum=69;
-    }else if(token=="="){
+    }else if(tmp_token=="="){
         tokenNum=70;
-    }else if(Number(token)!=NaN){
-        let tmp=Number(token);
+    }else if(!isNaN(tmp_token)){
         //整数の場合
-        if(Number.isInteger(tmp)){
+        if(Number.isInteger(tmp_token)){
             tokenNum=35;
         }else{
             //実数の場合
@@ -198,7 +221,7 @@ function identifyToken(token){
         tokenNum=1;
     }
 
-    console.log(tokenNum+" "+token);
+    console.log(tokenNum+" "+tmp_token);
 
     return tokenNum;
 }
@@ -283,8 +306,8 @@ function classDefinition(){
     index++;
 
     //ファースト集合である間繰り返す
-    while (tokenNums[index]){
-
+    while (false){
+        break;
     }
 
     //}でなければエラー

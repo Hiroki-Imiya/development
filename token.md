@@ -2,7 +2,7 @@
 
 <プログラム> := {import文} クラス定義  
 
-<import文> := 'import' 識別子 {'.' 識別子} ';'  
+<import文> := 'import' 識別子 ';'  
 
 <クラス定義> :=　アクセス修飾子 {'abstract' | 'static' | 'final' | 'strictfp'} 'class' クラス名  ['extends' クラス名] '{' {フィールド宣言 | 関数宣言 | 関数定義 |コンストラクター定義} '}'  
 <アクセス修飾子> := 'public' | 'private'  
