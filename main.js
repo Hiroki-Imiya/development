@@ -305,15 +305,66 @@ function classDefinition(){
 
     index++;
 
-    //ファースト集合である間繰り返す
-    while (false){
-        break;
+    //アクセス修飾子がある場合次のトークンへ
+    if(tokenNums[index]==14 || tokenNums[index]==15){
+        index++;
     }
+
+    //他の修飾子がある場合次のトークンへ
+    if(tokenNums[index]==17){
+        index++;
+    }
+
+    if(tokenNums[index]==40){
+        index++;
+    }else{
+        //型の関数
+        type();
+    }
+
+    //識別子でなければエラー
+    if(tokenNums[index]!=1){
+        throw new Error("関数名がありません");
+    }
+
+    index++;
+
+    
+
+
 
     //}でなければエラー
     if(tokenNums[index]!=58){
         throw new Error("}で終わっていません");
     }
     index++;
+}
+
+//型の関数
+function type(){
+    //型でなければエラー
+    if(tokenNums[index]!=25 && tokenNums[index]!=26 && tokenNums[index]!=27 && tokenNums[index]!=28 && tokenNums[index]!=29 && tokenNums[index]!=30 && tokenNums[index]!=31 && tokenNums[index]!=32 && tokenNums[index]!=33 && tokenNums[index]!=34){
+        throw new Error("型がありません");
+    }
+    index++;
+
+    //[があれば次のトークンへ
+    if(tokenNums[index]==59){
+        index++;
+        if(tokenNums[index]!=60){
+            throw new Error("]で終わっていません");
+        }
+        index++;
+    }
+
+    //型がArrayListの場合は<>がある
+    if(tokenNums[index]==61){
+        index++;
+        type();
+        if(tokenNums[index]!=62){
+            throw new Error(">で終わっていません");
+        }
+        index++;
+    }
 }
 
