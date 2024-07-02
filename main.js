@@ -305,39 +305,54 @@ function classDefinition(){
 
     index++;
 
-    //アクセス修飾子がある場合次のトークンへ
-    if(tokenNums[index]==14 || tokenNums[index]==15){
+    //}が来るまで繰り返す
+    while(tokenNums[index]!=58){
+        //アクセス修飾子がある場合次のトークンへ
+        if(tokenNums[index]==14 || tokenNums[index]==15){
+            index++;
+        }
+
+        //他の修飾子がある場合次のトークンへ
+        if(tokenNums[index]==17){
+            index++;
+        }
+
+        if(tokenNums[index]==40){
+            index++;
+        }else{
+            //型の関数
+            type();
+        }
+
+        //識別子でなければエラー
+        if(tokenNums[index]!=1){
+            throw new Error("関数名がありません");
+        }
+
         index++;
+
+        //(でなければフィールド宣言の関数へ
+        if(tokenNums[index]!=55){
+            fieldDeclaration();
+        }else{
+            //引数の関数
+            argument();
+        }
+
+        //;でなければ関数宣言の関数へ
+        if(tokenNums[index]!=69){
+            functionDeclaration();
+        }else {
+            //;であれば関数定義として次のトークンへ
+            index++;
+        }
+
+        //もし途中でindexがtokenNumsの長さを超えた場合はエラー
+        if(index>=tokenNums.length){
+            throw new Error("}で終わっていません");
+        }
     }
-
-    //他の修飾子がある場合次のトークンへ
-    if(tokenNums[index]==17){
-        index++;
-    }
-
-    if(tokenNums[index]==40){
-        index++;
-    }else{
-        //型の関数
-        type();
-    }
-
-    //識別子でなければエラー
-    if(tokenNums[index]!=1){
-        throw new Error("関数名がありません");
-    }
-
-    index++;
-
     
-
-
-
-    //}でなければエラー
-    if(tokenNums[index]!=58){
-        throw new Error("}で終わっていません");
-    }
-    index++;
 }
 
 //型の関数
@@ -368,3 +383,41 @@ function type(){
     }
 }
 
+//フィールド宣言の関数
+function fieldDeclaration(){
+    //型の関数
+    type();
+
+    //宣言子の並びの関数
+    declaratorList();
+    
+
+    //;でなければエラー
+    if(tokenNums[index]!=69){
+        throw new Error(";がありません");
+    }
+    index++;
+}
+
+//宣言子の並びの関数
+function declaratorList(){
+    //識別子でなければエラー
+    if(tokenNums[index]!=1){
+        throw new Error("識別子がありません");
+    }
+
+    index++;
+
+    //イコールがあれば次のトークンへ
+    if(tokenNums[index]==70){
+        index++;
+        //式の関数
+        expression();
+    }
+
+    //,でなければ終了
+    if(tokenNums[index]==63){
+        index++;
+        declaratorList();
+    }
+}
