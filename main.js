@@ -13,6 +13,9 @@ let index=0;
 //実行ボタンが押されたときの処理
 runButton.addEventListener('click', function () {
 
+    //index.htmlのstdlinタグを取得
+    const stdlin = document.getElementById('stdlin');
+
     //.を読み込んだ際にtokenに保存している文字列が数字だけかどうかを判定するための変数
     let isNumber=true;
 
@@ -40,6 +43,21 @@ runButton.addEventListener('click', function () {
                 //文字列のトークン番号である37
                 tokenNums.push(37);
                 console.log(37+" "+token);
+                token="";
+                continue;
+            }
+
+            //文字の場合
+            if(str=="'"){
+                i++;
+                //次の'が見つかるまでtokenに追加
+                while(code.charAt(i)!="'"){
+                    token+=code.charAt(i);
+                    i++;
+                }
+                //文字のトークン番号である41
+                tokenNums.push(41);
+                console.log(41+" "+token);
                 token="";
                 continue;
             }
@@ -91,6 +109,9 @@ runButton.addEventListener('click', function () {
         //構文解析を行う
         syntaxAnalysis();
     }catch(e){
+
+        //エラーが発生した場合はエラーメッセージをstdlinに出力
+        stdlin.innerHTML = e.message;
         console.log(e.message);
     }
 
@@ -99,7 +120,7 @@ runButton.addEventListener('click', function () {
 
 //文字の仕切りとなる文字かどうかを判定する関数
 function isDelimiter(str){
-    if(str=="\n" || str==" " || str=="(" || str==")" || str=="{" || str=="}" || str=="[" || str=="]" || str=="<" || str==">" || str=="," || str=="." || str=="|" || str=="&" || str=="'" || str=="\"" || str==";" || str=="=" || str=="+" || str=="-" || str=="*" || str=="/" || str=="%"){
+    if(str=="\n" || str==" " || str=="(" || str==")" || str=="{" || str=="}" || str=="[" || str=="]" || str=="<" || str==">" || str=="," || str=="." || str=="|" || str=="&" || str=="'" || str=="\"" || str==";" || str=="=" || str=="+" || str=="-" || str=="*" || str=="/" || str=="%" || str=='\''){
         return true;
     }else{
         return false;
@@ -269,9 +290,9 @@ function importStatement(){
     //トークンが.の間繰り返す
     while(tokenNums[index]==64){
         index++;
-        //識別子でなければエラー
-        if(tokenNums[index]!=1){
-            throw new Error(".の後に識別子がありません");
+        //識別子またはArrayListでなければエラー
+        if(tokenNums[index]!=1 && tokenNums[index]!=34){
+            throw new Error("import文の.の後に識別子またはArrayListがありません");
         }
         index++;
     }
@@ -280,7 +301,6 @@ function importStatement(){
     if(tokenNums[index]!=69){
         throw new Error("import文が;で終わっていません");
     }
-    index++;
 
 }
 
@@ -334,10 +354,20 @@ function classDefinition(){
         //(でなければフィールド宣言の関数へ
         if(tokenNums[index]!=55){
             fieldDeclaration();
-        }else{
-            //引数の関数
-            argument();
+
+        //型であれば変数宣言の関数へ
+        }else {
+            index++;
+            fieldDeclaration();
         }
+
+        index++;
+
+        //)でなければエラー
+        if(tokenNums[index]!=56){
+            throw new Error(")がありません");
+        }
+        index++;
 
         //;でなければ関数宣言の関数へ
         if(tokenNums[index]!=69){
@@ -349,7 +379,7 @@ function classDefinition(){
 
         //もし途中でindexがtokenNumsの長さを超えた場合はエラー
         if(index>=tokenNums.length){
-            throw new Error("}で終わっていません");
+            throw new Error("クラス定義が}で終わっていません");
         }
     }
     
@@ -357,6 +387,10 @@ function classDefinition(){
 
 //型の関数
 function type(){
+
+    //型を格納しておく変数
+    let variable_type;
+
     //型でなければエラー
     if(tokenNums[index]!=25 && tokenNums[index]!=26 && tokenNums[index]!=27 && tokenNums[index]!=28 && tokenNums[index]!=29 && tokenNums[index]!=30 && tokenNums[index]!=31 && tokenNums[index]!=32 && tokenNums[index]!=33 && tokenNums[index]!=34){
         throw new Error("型がありません");
@@ -381,26 +415,31 @@ function type(){
         }
         index++;
     }
+
+    //型を返す(初期化の際に使用する)
+    return variable_type;
 }
 
-//フィールド宣言の関数
+//フィールド宣言(変数宣言)の関数
 function fieldDeclaration(){
     //型の関数
-    type();
+    let variable_type=type();
 
     //宣言子の並びの関数
-    declaratorList();
+    declaratorList(variable_type);
     
+    index++;
 
     //;でなければエラー
     if(tokenNums[index]!=69){
-        throw new Error(";がありません");
+        throw new Error("フィールド宣言または変数宣言が;で終わっていません"+tokenNums[index]);
     }
     index++;
 }
 
-//宣言子の並びの関数
-function declaratorList(){
+//宣言子の並びの関数(引数は変数の型)
+function declaratorList(variable_type){
+
     //識別子でなければエラー
     if(tokenNums[index]!=1){
         throw new Error("識別子がありません");
@@ -411,13 +450,640 @@ function declaratorList(){
     //イコールがあれば次のトークンへ
     if(tokenNums[index]==70){
         index++;
-        //式の関数
-        expression();
-    }
 
-    //,でなければ終了
+        //型がintの場合
+        if(variable_type==25){
+            //整数でなければエラー
+            if(tokenNums[index]!=35){
+                throw new Error("int型に整数がありません");
+            }
+            index++;
+
+            //演算子である間繰り返す
+            while(tokenNums[index]==50 || tokenNums[index]==51 || tokenNums[index]==52 || tokenNums[index]==53 || tokenNums[index]==54){
+                index++;
+                //整数でなければエラー
+                if(tokenNums[index]!=35){
+                    throw new Error("int型に整数以外の計算をしようとしています");
+                }
+                index++;
+            }
+        //型がbyteの場合
+        }else if(variable_type==26){    
+            //整数でなければエラー
+            if(tokenNums[index]!=35){
+                throw new Error("byte型に整数がありません");
+            }
+            index++;
+            
+            //演算子である間繰り返す
+            while(tokenNums[index]==50 || tokenNums[index]==51 || tokenNums[index]==52 || tokenNums[index]==53 || tokenNums[index]==54){
+                index++;
+                //整数でなければエラー
+                if(tokenNums[index]!=35){
+                    throw new Error("byte型に整数以外の計算をしようとしています");
+                }
+                index++;
+            }
+
+        //型がshortの場合
+        }else if(variable_type==27){    
+            //整数でなければエラー
+            if(tokenNums[index]!=35){
+                throw new Error("short型に整数がありません");
+            }
+            index++;
+
+            //演算子である間繰り返す
+            while(tokenNums[index]==50 || tokenNums[index]==51 || tokenNums[index]==52 || tokenNums[index]==53 || tokenNums[index]==54){
+                index++;
+                //整数でなければエラー
+                if(tokenNums[index]!=35){
+                    throw new Error("short型に整数以外の計算をしようとしています");
+                }
+                index++;
+            }
+
+        //型がlongの場合
+        }else if(variable_type==28){    
+            //整数でなければエラー
+            if(tokenNums[index]!=35){
+                throw new Error("long型に整数がありません");
+            }
+            index++;
+
+            //演算子である間繰り返す
+            while(tokenNums[index]==50 || tokenNums[index]==51 || tokenNums[index]==52 || tokenNums[index]==53 || tokenNums[index]==54){
+                index++;
+                //整数でなければエラー
+                if(tokenNums[index]!=35){
+                    throw new Error("long型に整数以外の計算をしようとしています");
+                }
+                index++;
+            }
+
+        //型がfloatの場合
+        }else if(variable_type==29){
+            //実数でなければエラー
+            if(tokenNums[index]!=36){
+                throw new Error("float型に実数がありません");
+            }
+            index++;
+
+            //演算子である間繰り返す
+            while(tokenNums[index]==50 || tokenNums[index]==51 || tokenNums[index]==52 || tokenNums[index]==53 || tokenNums[index]==54){
+                index++;
+                //実数でなければエラー
+                if(tokenNums[index]!=36){
+                    throw new Error("float型に実数以外の計算をしようとしています");
+                }
+                index++;
+            }
+
+        //型がdoubleの場合
+        }else if(variable_type==30){
+            //実数でなければエラー
+            if(tokenNums[index]!=36){
+                throw new Error("double型に実数がありません");
+            }
+            index++;
+
+            //演算子である間繰り返す
+            while(tokenNums[index]==50 || tokenNums[index]==51 || tokenNums[index]==52 || tokenNums[index]==53 || tokenNums[index]==54){
+                index++;
+                //実数でなければエラー
+                if(tokenNums[index]!=36){
+                    throw new Error("double型に実数以外の計算をしようとしています");
+                }
+                index++;
+            }
+
+        //型がbooleanの場合
+        }else if(variable_type==31){
+            //trueまたはfalseでなければエラー
+            if(tokenNums[index]!=38 && tokenNums[index]!=39){
+                throw new Error("boolean型にtrueまたはfalseがありません");
+            }
+            index++;
+        
+        //型がcharの場合
+        }else if(variable_type==32){
+            //文字でなければエラー
+            if(tokenNums[index]!=41){
+                throw new Error("char型に文字がありません");
+            }
+            index++;
+
+        //型がStringの場合
+        }else if(variable_type==33){
+            //文字列でなければエラー
+            if(tokenNums[index]!=37){
+                throw new Error("String型に文字列がありません");
+            }
+            index++;
+
+            //プラスがあれば文字列の連結
+            if(tokenNums[index]==50){
+                index++;
+                //文字列でなければエラー
+                if(tokenNums[index]!=37){
+                    throw new Error("String型ではないものが連結されています");
+                }
+            }
+
+        //型がArrayListの場合
+        }else if(variable_type==34){
+            //newでなければエラー
+            if(tokenNums[index]!=13){
+                throw new Error("ArrayList型にnewがありません");
+            }
+
+            index++;
+
+            //ArrayListでなければエラー
+            if(tokenNums[index]!=34){
+                throw new Error("ArrayList型にArrayListがありません");
+            }
+
+            index++;
+
+            //<でなければエラー
+            if(tokenNums[index]!=61){
+                throw new Error("ArrayList型に<がありません");
+            }
+
+            index++;
+
+            //型の関数
+            type();
+
+            //>でなければエラー
+            if(tokenNums[index]!=62){
+                throw new Error("ArrayList型に>がありません");
+            }
+
+            index++;
+
+            //(でなければエラー
+            if(tokenNums[index]!=55){
+                throw new Error("ArrayList型に(がありません");
+            }
+            index++;
+
+            //整数または識別子であれば次のトークンへ
+            if(tokenNums[index]==35 || tokenNums[index]==1){
+                index++;
+            }
+
+            //)でなければエラー
+            if(tokenNums[index]!=56){
+                throw new Error("ArrayList型に)がありません");
+            }
+
+
+        }else {
+            throw new Error("型がありません");
+        }
+
+    }
+    //,があればもう一度宣言子の並びの関数へ
     if(tokenNums[index]==63){
         index++;
         declaratorList();
     }
+
+    return;
+}
+
+//関数宣言の関数
+function functionDeclaration(){
+    //{でなければエラー
+    if(tokenNums[index]!=57){
+        throw new Error("{がありません");
+    }
+
+    index++;
+
+    //}が来るまで繰り返す
+    while(tokenNums[index]!=58){
+
+        //型の場合は変数宣言の関数へ
+        if(tokenNums[index]==25 || tokenNums[index]==26 || tokenNums[index]==27 || tokenNums[index]==28 || tokenNums[index]==29 || tokenNums[index]==30 || tokenNums[index]==31 || tokenNums[index]==32 || tokenNums[index]==33 || tokenNums[index]==34){
+            fieldDeclaration();
+        
+        //そうでなければ文の関数へ
+        }else{
+            statement();
+        }
+
+        index++;
+
+        //;でなければエラー
+        if(tokenNums[index]!=69){
+            throw new Error(";がありません");
+        }
+
+        index++;
+
+        //もし途中でindexがtokenNumsの長さを超えた場合はエラー
+        if(index>=tokenNums.length){
+            throw new Error("関数が}で終わっていません");
+        }
+    }
+}
+
+//文の関数
+function statement(){
+    //トークンによって処理を分岐
+    switch (tokenNums[index]){
+        //ifの場合
+        case 7:
+            index++;
+            ifStatement();
+            break;
+        //whileの場合
+        case 9:
+            index++;
+            whileStatement();
+            break;
+        //forの場合
+        case 10:
+            index++;
+            forStatement();
+            break;
+        //returnの場合
+        case 11:
+            index++;
+            returnStatement();
+            break;
+        //breakの場合
+        case 12:
+            index++;
+            breakStatement();
+            break;
+        //識別子の場合
+        case 1:
+            index++;
+            identifierStatement();
+            break;
+        default:
+            throw new Error("文エラー");
+            break;
+    }
+}
+
+//if文の関数
+function ifStatement(){
+    //(でなければエラー
+    if(tokenNums[index]!=55){
+        throw new Error("(がありません");
+    }
+    index++;
+
+    //比較文の関数
+    comparisonStatement();
+
+    //)でなければエラー
+    if(tokenNums[index]!=56){
+        throw new Error(")がありません");
+    }
+    index++;
+
+    //{でなければエラー
+    if(tokenNums[index]!=57){
+        throw new Error("{がありません");
+    }
+
+    index++;
+
+    //文の関数
+    statement();
+
+    //}でなければエラー
+    if(tokenNums[index]!=58){
+        throw new Error("}がありません");
+    }
+
+    index++;
+
+    //elseがある間繰り返す
+    while(tokenNums[index]==8){
+        index++;
+        
+        //ifの場合
+        if(tokenNums[index]==7){
+            index++;
+            ifStatement();
+
+        //{の場合
+        }else if(tokenNums[index]==57){
+            index++;
+            statement();
+
+            //}でなければエラー
+            if(tokenNums[index]!=58){
+                throw new Error("}がありません");
+            }
+            index++;
+        }
+
+    }
+}
+
+//比較文の関数
+function comparisonStatement(){
+    //識別子でなければエラー
+    if(tokenNums[index]!=1){
+        throw new Error("識別子がありません");
+    }
+    index++;
+
+    //比較演算子でなければエラー
+    if(tokenNums[index]!=61 && tokenNums[index]!=62 && tokenNums[index]!=69){
+        throw new Error("比較演算子がありません");
+    }
+
+    //比較演算子が=の場合
+    if(tokenNums[index]==69){
+        index++;
+        //=でなければエラー
+        if(tokenNums[index]!=70){
+            throw new Error("==でない比較演算子があります");
+        }
+    }
+    index++;
+
+    //識別子でなければエラー
+    if(tokenNums[index]!=1){
+        throw new Error("識別子がありません");
+    }
+    index++;
+
+    //||または&&がある間繰り返す
+    while((tokenNums[index]==65 && tokenNums[index+1]==65) || (tokenNums[index]==66 && tokenNums[index+1]==66)){
+        index++;
+        index++;
+        //識別子でなければエラー
+        if(tokenNums[index]!=1){
+            throw new Error("識別子がありません");
+        }
+        index++;
+    }
+
+}
+
+//while文の関数
+function whileStatement(){
+    //(でなければエラー
+    if(tokenNums[index]!=55){
+        throw new Error("(がありません");
+    }
+    index++;
+
+    //比較文の関数
+    comparisonStatement();
+
+    //)でなければエラー
+    if(tokenNums[index]!=56){
+        throw new Error(")がありません");
+    }
+    index++;
+
+    //{でなければエラー
+    if(tokenNums[index]!=57){
+        throw new Error("{がありません");
+    }
+
+    index++;
+
+    //文の関数
+    statement();
+
+    //}でなければエラー
+    if(tokenNums[index]!=58){
+        throw new Error("}がありません");
+    }
+
+    index++;
+}
+
+//for文の関数
+function forStatement(){
+    //(でなければエラー
+    if(tokenNums[index]!=55){
+        throw new Error("(がありません");
+    }
+    index++;
+
+    //変数宣言の関数
+    fieldDeclaration();
+
+    //;でなければエラー
+    if(tokenNums[index]!=69){
+        throw new Error(";がありません");
+    }
+    index++;
+
+    //比較文の関数
+    comparisonStatement();
+
+    //;でなければエラー
+    if(tokenNums[index]!=69){
+        throw new Error(";がありません");
+    }
+    index++;
+
+    //識別子でなければエラー
+    if(tokenNums[index]!=1){
+        throw new Error("識別子がありません");
+    }
+    index++;
+
+    //)でなければエラー
+    if(tokenNums[index]!=56){
+        throw new Error(")がありません");
+    }
+    index++;
+
+    //{でなければエラー
+    if(tokenNums[index]!=57){
+        throw new Error("{がありません");
+    }
+
+    index++;
+
+    //文の関数
+    statement();
+
+    //}でなければエラー
+    if(tokenNums[index]!=58){
+        throw new Error("}がありません");
+    }
+
+    index++;
+}
+
+//return文の関数
+function returnStatement(){
+    //識別子でなければエラー
+    if(tokenNums[index]!=1){
+        throw new Error("識別子がありません");
+    }
+    index++;
+
+    //;でなければエラー
+    if(tokenNums[index]!=69){
+        throw new Error(";がありません");
+    }
+    index++;
+}
+
+//break文の関数
+function breakStatement(){
+    //;でなければエラー
+    if(tokenNums[index]!=69){
+        throw new Error(";がありません");
+    }
+    index++;
+}
+
+//識別子の文の関数
+function identifierStatement(){
+    //.がある間繰り返す
+    while(tokenNums[index]==64){
+        index++;
+
+        //printの場合
+        if(tokenNums[index]==2){
+            index++;
+            printStatement();
+
+            //while文を抜ける
+            break;
+        
+        //printlnの場合
+        }else if(tokenNums[index]==3){
+            index++;
+            printlnStatement();
+
+            //while文を抜ける
+            break;
+
+        //printfの場合
+        }else if(tokenNums[index]==4){
+            index++;
+            printfStatement();
+
+            //while文を抜ける
+            break;
+        }
+
+        //識別子でなければエラー
+        if(tokenNums[index]!=1){
+            throw new Error("識別子がありません");
+        }
+        index++;
+    }
+
+    //イコールがあれば次のトークンへ
+    if(tokenNums[index]==70){
+        index++;
+
+        //整数または識別子であれば次のトークンへ
+        if(tokenNums[index]==35 || tokenNums[index]==1){
+            index++;
+        }
+    }
+
+    //;でなければエラー
+}
+
+//print文の関数
+function printStatement(){
+    //(でなければエラー
+    if(tokenNums[index]!=55){
+        throw new Error("(がありません");
+    }
+    index++;
+
+    //識別子または文字列であれば次のトークンへ
+    if(tokenNums[index]==1 || tokenNums[index]==37){
+        index++;
+    }
+
+    //)でなければエラー
+    if(tokenNums[index]!=56){
+        throw new Error(")がありません");
+    }
+    index++;
+
+    //;でなければエラー
+    if(tokenNums[index]!=69){
+        throw new Error(";がありません");
+    }
+    index++;
+}
+
+//println文の関数
+function printlnStatement(){
+    //(でなければエラー
+    if(tokenNums[index]!=55){
+        throw new Error("(がありません");
+    }
+    index++;
+
+    //識別子または文字列であれば次のトークンへ
+    if(tokenNums[index]==1 || tokenNums[index]==37){
+        index++;
+    }
+
+    //)でなければエラー
+    if(tokenNums[index]!=56){
+        throw new Error(")がありません");
+    }
+    index++;
+
+    //;でなければエラー
+    if(tokenNums[index]!=69){
+        throw new Error(";がありません");
+    }
+    index++;
+}
+
+//printf文の関数
+function printfStatement(){
+    //(でなければエラー
+    if(tokenNums[index]!=55){
+        throw new Error("(がありません");
+    }
+    index++;
+
+    //文字列であれば次のトークンへ
+    if(tokenNums[index]==37){
+        index++;
+    }
+
+    //,でなければエラー
+    if(tokenNums[index]!=63){
+        throw new Error(",がありません");
+    }
+    index++;
+
+    //識別子でなければエラー
+    if(tokenNums[index]!=1){
+        throw new Error("識別子がありません");
+    }
+    index++;
+
+    //)でなければエラー
+    if(tokenNums[index]!=56){
+        throw new Error(")がありません");
+    }
+    index++;
+
+    //;でなければエラー
+    if(tokenNums[index]!=69){
+        throw new Error(";がありません");
+    }
+    index++;
 }
