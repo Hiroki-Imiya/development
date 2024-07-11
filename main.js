@@ -13,6 +13,15 @@ let index=0;
 //実行ボタンが押されたときの処理
 runButton.addEventListener('click', function () {
 
+    //初期化
+    //現在読み込んでいる文字を保存する
+    token="";
+
+    //トークン番号を格納する配列
+    tokenNums = [];
+    //構文解析の際に使用する添字
+    index=0;
+
     //index.htmlのstdlinタグを取得
     const stdlin = document.getElementById('stdlin');
 
@@ -126,7 +135,7 @@ runButton.addEventListener('click', function () {
 
 //文字の仕切りとなる文字かどうかを判定する関数
 function isDelimiter(str){
-    if(str=="\n" || str==" " || str=="(" || str==")" || str=="{" || str=="}" || str=="[" || str=="]" || str=="<" || str==">" || str=="," || str=="." || str=="|" || str=="&" || str=="'" || str=="\"" || str==";" || str=="=" || str=="+" || str=="-" || str=="*" || str=="/" || str=="%" || str=='\''){
+    if(str=="\n" || str==" " || str=="(" || str==")" || str=="{" || str=="}" || str=="[" || str=="]" || str=="<" || str==">" || str=="," || str=="." || str=="|" || str=="&" || str=="'" || str=="\"" || str==";" || str=="=" || str=="+" || str=="-" || str=="*" || str=="/" || str=="%" || str=='\''|| str=='\t'){
         return true;
     }else{
         return false;
@@ -697,15 +706,14 @@ function functionDeclaration(){
         //型の場合は変数宣言の関数へ
         if(tokenNums[index]==25 || tokenNums[index]==26 || tokenNums[index]==27 || tokenNums[index]==28 || tokenNums[index]==29 || tokenNums[index]==30 || tokenNums[index]==31 || tokenNums[index]==32 || tokenNums[index]==33 || tokenNums[index]==34){
             fieldDeclaration();
-            console.log(tokenNums[index]);
+            //;でなければエラー
+            if(tokenNums[index]!=69){
+                throw new Error(";がありません.トークン名:"+tokenNums[index]+"配列の添字:"+index);
+            }
         
         //そうでなければ文の関数へ
         }else{
             statement();
-        }
-        //;でなければエラー
-        if(tokenNums[index]!=69){
-            throw new Error(";がありません.トークン名:"+tokenNums[index]+"配列の添字:"+index);
         }
 
         index++;
@@ -742,16 +750,28 @@ function statement(){
         case 11:
             index++;
             returnStatement();
+            //;でなければエラー
+            if(tokenNums[index]!=69){
+                throw new Error(";がありません.トークン名:"+tokenNums[index]+"配列の添字:"+index);
+            }
             break;
         //breakの場合
         case 12:
             index++;
             breakStatement();
+            //;でなければエラー
+            if(tokenNums[index]!=69){
+                throw new Error(";がありません.トークン名:"+tokenNums[index]+"配列の添字:"+index);
+            }
             break;
         //識別子の場合
         case 1:
             index++;
             identifierStatement();
+            //;でなければエラー
+            if(tokenNums[index]!=69){
+                throw new Error(";がありません.トークン名:"+tokenNums[index]+"配列の添字:"+index);
+            }
             break;
         default:
             throw new Error("文エラー.トークン名:"+tokenNums[index]+"配列の添字:"+index);
@@ -787,6 +807,8 @@ function ifStatement(){
 
     //文の関数
     statement();
+
+    index++;
 
     //}でなければエラー
     if(tokenNums[index]!=58){
@@ -844,9 +866,9 @@ function comparisonStatement(){
     }
     index++;
 
-    //識別子でなければエラー
-    if(tokenNums[index]!=1){
-        throw new Error("識別子がありません.トークン名:"+tokenNums[index]+"配列の添字:"+index);
+    //識別子または整数でなければエラー
+    if(tokenNums[index]!=1 && tokenNums[index]!=35){
+        throw new Error("識別子または整数がありません.トークン名:"+tokenNums[index]+"配列の添字:"+index);
     }
     index++;
 
@@ -892,6 +914,8 @@ function whileStatement(){
     //文の関数
     statement();
 
+    index++;    
+
     //}でなければエラー
     if(tokenNums[index]!=58){
         throw new Error("}がありません.トークン名:"+tokenNums[index]+"配列の添字:"+index);
@@ -928,11 +952,8 @@ function forStatement(){
     }
     index++;
 
-    //識別子でなければエラー
-    if(tokenNums[index]!=1){
-        throw new Error("識別子がありません.トークン名:"+tokenNums[index]+"配列の添字:"+index);
-    }
-    index++;
+    //演算子の関数
+    operatorStatement();
 
     //)でなければエラー
     if(tokenNums[index]!=56){
@@ -949,6 +970,8 @@ function forStatement(){
 
     //文の関数
     statement();
+
+    index++;
 
     //}でなければエラー
     if(tokenNums[index]!=58){
@@ -1114,5 +1137,34 @@ function printfStatement(){
         throw new Error(")がありません.トークン名:"+tokenNums[index]+"配列の添字:"+index);
     }
     index++;
+
+}
+
+//演算子の関数
+function operatorStatement(){
+
+    console.log("operatorStatement" + tokenNums[index]);
+    //識別子または整数であれば次のトークンへ
+    if(tokenNums[index]==1 || tokenNums[index]==35){
+        index++;
+    }
+
+    //演算子である間繰り返す
+    while(tokenNums[index]==50 || tokenNums[index]==51 || tokenNums[index]==52 || tokenNums[index]==53 || tokenNums[index]==54){
+        //インクリメント用の変数
+        let increment_index=tokenNums[index];
+        index++;
+        //識別子または整数であれば次のトークンへ
+        if(tokenNums[index]==1 || tokenNums[index]==35){
+            index++;
+        }
+
+        //インクリメントの場合
+        if((increment_index==50 && tokenNums[index]==50) || (increment_index==51 && tokenNums[index]==51)){
+            index++;
+            break;
+        }
+
+    }
 
 }
