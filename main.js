@@ -55,7 +55,7 @@ runButton.addEventListener('click', function () {
                     tokenValue:token
                 }
                 tokenNums.push(tmp_tokens);
-                console.log(37+" "+token);
+                console.log(37+" "+tokenNums);
                 token="";
                 continue;
             }
@@ -132,6 +132,17 @@ runButton.addEventListener('click', function () {
             token+=str;
         }
     }
+
+    //idがrigitに表形式で表示
+    const table = document.getElementById('right');
+    let tr="<tr><th>トークン番号</th><th>トークン</th></tr>";
+
+    for(let i=0;i<tokenNums.length;i++){
+
+        tr+="<tr><td>"+tokenNums[i].tokenNum+"</td><td>"+tokenNums[i].tokenValue+"</td></tr>";
+    }
+
+    table.innerHTML=tr;
 
     try{
         //構文解析を行う

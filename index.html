@@ -6,12 +6,13 @@
 </head>
 <body>
     <h1>開発</h1>
-    <p>開発に関する情報を表示します。</p>
-
     <!--Aceエディターの設定-->
-    <div id="editor" style="height: 600px"></div>
+    <div id="editor" style="height: 200px; width: 40%;float: left;"></div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.0/ace.js"></script>
     <script src="aceEditor.js"></script>
+
+    <!--右半分に表示-->
+    <table id="right" style="float: right; width: 60%; height: 600px; overflow: auto;" border="1"></table>
 
     <!--実行ボタン-->
     <button id="run">実行</button>
