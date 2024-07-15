@@ -1,10 +1,10 @@
 // Description: JavaScriptの勉強をするためのファイルです。
 
+
+//htmlのidがresult
+const result = document.getElementById('result');
 /*let a=[1,2,3];
 let b= new Array(1,2,3);
-
-//htmlのidがresultの要素にaとbの内容を表示する
-const result = document.getElementById('result');
 
 let str = "";
 
@@ -24,6 +24,7 @@ for(let i=0; i<b.length; i++){
 result.innerHTML = str;*/
 //ここまでは配列の勉強
 
+/*
 //Userクラスのインスタンスを生成
 let user = new User("taro", "1234");
 let user2 = new User("jiro", "5678");
@@ -74,3 +75,18 @@ admin.role = "normal";
 console.log(admin.role);
 
 //ここまでがUserクラスのインスタンスを生成して、メソッドを呼び出すところ
+*/
+
+//ここからはオブジェクトの勉強
+let tokens ={
+    tokenNum : 3,
+    tokenValue : "int"
+}
+
+delete tokens.tokenNum;
+
+result.innerHTML = tokens.tokenNum + "<br>" + tokens.tokenValue;
+
+result.innerHTML += "<br>";
+
+//result.innerHTML += tokens["tokenNum"] + "<br>" + tokens["tokenValue"];
