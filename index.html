@@ -5,9 +5,8 @@
     <title>開発</title>
 </head>
 <body>
-    <h1>開発</h1>
     <!--Aceエディターの設定-->
-    <div id="editor" style="height: 200px; width: 40%;float: left;"></div>
+    <div id="editor" style="height: 400px; width: 40%;float: left;"></div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.0/ace.js"></script>
     <script src="aceEditor.js"></script>
 
@@ -20,11 +19,8 @@
     <!--実行結果-->
     <div id="result"></div>
 
-    <!--エラーメッセージ-->
-    <div >
-        <h2>エラーメッセージ</h2>
-        <div id="stdlin"></div>
-    </div>
+    <!--メッセージ-->
+    <textarea id="message" style="width: 39%; height: 100px;" readonly></textarea>
 
     <!--javascriptファイルを読み取る-->
     <script src="main.js"></script>

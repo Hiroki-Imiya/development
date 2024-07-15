@@ -1,12 +1,18 @@
 import java.util.ArrayList;
 
 public class Test{
-	public static void main(String[] args){
-		int a=0;
-		double b=1.0;
-
-		System.out.println(a);
-		System.out.print(b);
-		System.out.printf("Hello World");
-	}
+    public static void main(String[] args){
+        int cnt=0;
+        
+        while(cnt>10){
+            cnt=cnt+3;
+            cnt++;
+        }
+        
+        for(int i=0;i<cnt;i++){
+            while(i+cnt<40){
+                System.out.println(i+cnt);
+            }
+        }
+    }
 }

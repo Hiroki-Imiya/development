@@ -5,6 +5,9 @@ let runButton = document.getElementById('run');
 //現在読み込んでいる文字を保存する
 let token="";
 
+//index.htmlのmessageタグを取得
+const message = document.getElementById('message');
+
 //トークン番号を格納する配列
 let tokenNums = [];
 //構文解析の際に使用する添字
@@ -21,9 +24,6 @@ runButton.addEventListener('click', function () {
     tokenNums = [];
     //構文解析の際に使用する添字
     index=0;
-
-    //index.htmlのstdlinタグを取得
-    const stdlin = document.getElementById('stdlin');
 
     //.を読み込んだ際にtokenに保存している文字列が数字だけかどうかを判定するための変数
     let isNumber=true;
@@ -116,7 +116,7 @@ runButton.addEventListener('click', function () {
                 }
             }
             //改行または空白またはタブの場合はスキップ
-            if(str=="\n" || str==" " || str=="\t"){
+            if(str=='\n' || str==' ' || str=='\t'){
                 continue;
             }else{
                 //トークンを識別
@@ -135,11 +135,11 @@ runButton.addEventListener('click', function () {
 
     //idがrigitに表形式で表示
     const table = document.getElementById('right');
-    let tr="<tr><th>トークン番号</th><th>トークン</th></tr>";
+    let tr="<tr><th>添字</th><th>トークン番号</th><th>トークン</th></tr>";
 
     for(let i=0;i<tokenNums.length;i++){
 
-        tr+="<tr><td>"+tokenNums[i].tokenNum+"</td><td>"+tokenNums[i].tokenValue+"</td></tr>";
+        tr+="<tr><td>"+i+"</td><td>"+tokenNums[i].tokenNum+"</td><td>"+tokenNums[i].tokenValue+"</td></tr>";
     }
 
     table.innerHTML=tr;
@@ -148,15 +148,13 @@ runButton.addEventListener('click', function () {
         //構文解析を行う
         syntaxAnalysis();
 
-        //エラーが発生しなかった場合はstdlinに"正常終了"を出力
-        stdlin.innerHTML = "正常終了";
+        //エラーが発生しなかった場合はmessageに"正常終了"を出力
+        message.value = "正常終了\n";
 
-        console.log("正常終了");
     }catch(e){
 
-        //エラーが発生した場合はエラーメッセージをstdlinに出力
-        stdlin.innerHTML = e.message;
-        console.log(e.message);
+        //エラーが発生した場合はエラーメッセージをmessageに出力
+        message.value = e.message+"\n";
     }
 
 
@@ -164,7 +162,7 @@ runButton.addEventListener('click', function () {
 
 //文字の仕切りとなる文字かどうかを判定する関数
 function isDelimiter(str){
-    if(str=="\n" || str==" " || str=="(" || str==")" || str=="{" || str=="}" || str=="[" || str=="]" || str=="<" || str==">" || str=="," || str=="." || str=="|" || str=="&" || str=="'" || str=="\"" || str==";" || str=="=" || str=="+" || str=="-" || str=="*" || str=="/" || str=="%" || str=='\''|| str=='\t'){
+    if(str=='\n' || str==' '  || str=="(" || str==")" || str=="{" || str=="}" || str=="[" || str=="]" || str=="<" || str==">" || str=="," || str=="." || str=="|" || str=="&" || str=="'" || str=="\"" || str==";" || str=="=" || str=="+" || str=="-" || str=="*" || str=="/" || str=="%" || str=='\''|| str=='\t'){
         return true;
     }else{
         return false;
@@ -295,7 +293,8 @@ function identifyToken(tmp_token){
         tokenNum=1;
     }
 
-    console.log(tokenNum+" "+tmp_token);
+    //messageにトークンの内容を出力
+    message.value += tokenNum+" "+tmp_token+"\n";
 
     return tokenNum;
 }
