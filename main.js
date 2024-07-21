@@ -13,6 +13,9 @@ let tokenNums = [];
 //構文解析の際に使用する添字
 let index=0;
 
+//JavaのコードをJavaScriptに変換する際に使用する変数
+let JavaScriptCode="";
+
 //実行ボタンが押されたときの処理
 runButton.addEventListener('click', function () {
 
@@ -25,6 +28,9 @@ runButton.addEventListener('click', function () {
     //構文解析の際に使用する添字
     index=0;
 
+    //コードの列を格納する変数
+    let row=1;
+
     //.を読み込んだ際にtokenに保存している文字列が数字だけかどうかを判定するための変数
     let isNumber=true;
 
@@ -32,6 +38,9 @@ runButton.addEventListener('click', function () {
     let code = editor.getSession().getValue();
 
     console.log(code);
+
+    //messageに"字句解析開始"を出力
+    message.value = "字句解析開始\n";
 
     //codeの内容を字句解析する
     for (let i = 0; i < code.length; i++) {
@@ -52,7 +61,8 @@ runButton.addEventListener('click', function () {
                 //文字列のトークン番号である37
                 let tmp_tokens={
                     tokenNum:37,
-                    tokenValue:token
+                    tokenValue:token,
+                    row:row
                 }
                 tokenNums.push(tmp_tokens);
                 console.log(37+" "+tokenNums);
@@ -71,7 +81,8 @@ runButton.addEventListener('click', function () {
                 //文字のトークン番号である41
                 let tmp_tokens={
                     tokenNum:41,
-                    tokenValue:token
+                    tokenValue:token,
+                    column:row
                 }
                 tokenNums.push(tmp_tokens);
                 console.log(41+" "+token);
@@ -98,7 +109,8 @@ runButton.addEventListener('click', function () {
                         let tmp=identifyToken(token);
                         let tmp_tokens={
                             tokenNum:tmp,
-                            tokenValue:token
+                            tokenValue:token,
+                            column:row
                         }
                         tokenNums.push(tmp_tokens);
                         token=""
@@ -109,7 +121,8 @@ runButton.addEventListener('click', function () {
                     let tmp=identifyToken(token);
                     let tmp_tokens={
                         tokenNum:tmp,
-                        tokenValue:token
+                        tokenValue:token,
+                        column:row
                     }
                     tokenNums.push(tmp_tokens);
                     token=""
@@ -117,13 +130,18 @@ runButton.addEventListener('click', function () {
             }
             //改行または空白またはタブの場合はスキップ
             if(str=='\n' || str==' ' || str=='\t'){
+                //改行の場合は行数をカウント
+                if(str=='\n'){
+                    row++;
+                }
                 continue;
             }else{
                 //トークンを識別
                 tmp=identifyToken(str);
                 let tmp_tokens={
                     tokenNum:tmp,
-                    tokenValue:str
+                    tokenValue:str,
+                    column:row
                 }
                 tokenNums.push(tmp_tokens);
             }
@@ -135,11 +153,11 @@ runButton.addEventListener('click', function () {
 
     //idがrigitに表形式で表示
     const table = document.getElementById('right');
-    let tr="<tr><th>添字</th><th>トークン番号</th><th>トークン</th></tr>";
+    let tr="<tr><th>添字</th><th>トークン番号</th><th>トークン</th><th>行数</th></tr>";
 
     for(let i=0;i<tokenNums.length;i++){
 
-        tr+="<tr><td>"+i+"</td><td>"+tokenNums[i].tokenNum+"</td><td>"+tokenNums[i].tokenValue+"</td></tr>";
+        tr+="<tr><td>"+i+"</td><td>"+tokenNums[i].tokenNum+"</td><td>"+tokenNums[i].tokenValue+"</td><td>"+tokenNums[i].column+"</td></tr>";
     }
 
     table.innerHTML=tr;
@@ -149,14 +167,15 @@ runButton.addEventListener('click', function () {
         syntaxAnalysis();
 
         //エラーが発生しなかった場合はmessageに"正常終了"を出力
-        message.value = "正常終了\n";
+        message.value += "正常終了\n";
 
     }catch(e){
 
         //エラーが発生した場合はエラーメッセージをmessageに出力
-        message.value = e.message+"\n";
+        message.value += e.message+"\n";
     }
 
+    message.value += JavaScriptCode+"\n";
 
 });
 
