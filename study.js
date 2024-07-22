@@ -77,6 +77,7 @@ console.log(admin.role);
 //ここまでがUserクラスのインスタンスを生成して、メソッドを呼び出すところ
 */
 
+/*
 //ここからはオブジェクトの勉強
 let tokens ={
     tokenNum : 3,
@@ -90,3 +91,4 @@ result.innerHTML = tokens.tokenNum + "<br>" + tokens.tokenValue;
 result.innerHTML += "<br>";
 
 //result.innerHTML += tokens["tokenNum"] + "<br>" + tokens["tokenValue"];
+*/
