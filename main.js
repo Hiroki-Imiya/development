@@ -16,8 +16,13 @@ let index=0;
 //JavaのコードをJavaScriptに変換する際に使用する変数
 let JavaScriptCode="";
 
+//classがmeraidのタブを取得
+let mermaid = document.getElementById('mermaid');
+
 //実行ボタンが押されたときの処理
 runButton.addEventListener('click', function () {
+
+    JavaScriptCode="";
 
     //初期化
     //現在読み込んでいる文字を保存する
@@ -38,9 +43,6 @@ runButton.addEventListener('click', function () {
     let code = editor.getSession().getValue();
 
     console.log(code);
-
-    //messageに"字句解析開始"を出力
-    message.value = "字句解析開始\n";
 
     //codeの内容を字句解析する
     for (let i = 0; i < code.length; i++) {
@@ -65,7 +67,6 @@ runButton.addEventListener('click', function () {
                     row:row
                 }
                 tokenNums.push(tmp_tokens);
-                console.log(37+" "+tokenNums);
                 token="";
                 continue;
             }
@@ -85,7 +86,6 @@ runButton.addEventListener('click', function () {
                     column:row
                 }
                 tokenNums.push(tmp_tokens);
-                console.log(41+" "+token);
                 token="";
                 continue;
             }
@@ -167,13 +167,17 @@ runButton.addEventListener('click', function () {
         syntaxAnalysis();
 
         //エラーが発生しなかった場合はmessageに"正常終了"を出力
-        message.value += "正常終了\n";
+        message.value += "正常終了\n\n";
+
+        eval(JavaScriptCode);
 
     }catch(e){
 
         //エラーが発生した場合はエラーメッセージをmessageに出力
         message.value += e.message+"\n";
     }
+
+    message.value += "\n";
 
     message.value += JavaScriptCode+"\n";
 
@@ -311,9 +315,6 @@ function identifyToken(tmp_token){
     }else {
         tokenNum=1;
     }
-
-    //messageにトークンの内容を出力
-    message.value += tokenNum+" "+tmp_token+"\n";
 
     return tokenNum;
 }

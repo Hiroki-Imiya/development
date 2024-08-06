@@ -7,10 +7,10 @@
     <!--meraidの設定-->
     <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
     <script>
-    mermaid.initialize({
-        startOnLoad: true, 
-        theme: 'defalt'
-    });
+    //mermaid.initialize({
+    //    startOnLoad: true, 
+    //    theme: 'defalt'
+    //});
     </script>
 </head>
 <body>
@@ -29,24 +29,15 @@
     <div id="result"></div>
 
     <!--メッセージ-->
-    <textarea id="message" style="width: 39%; height: 100px; float: left;" readonly></textarea>
+    <textarea id="message" style="width: 39%; height: 400px; float: left;" readonly></textarea>
+
+    <!--mermaidの設定-->
+    <div id="mermaid" class="mermaid" style="width: 60%; float: right;"> 
+    </div>
 
     <!--javascriptファイルを読み取る-->
     <script src="main.js"></script>
     <script src="koubun.js"></script>
-
-    <!--mermaidの設定-->
-    <div class="mermaid" style="width: 60%; float: right;">
-        classDiagram
-        class A {
-            +String name
-            +int age
-            +void setName(String name)
-            +void setAge(int age)
-            +String getName()
-            +int getAge()
-        }
-    </div>
 
 </body>
 </html>
