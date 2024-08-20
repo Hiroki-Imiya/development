@@ -4,23 +4,27 @@
 	<meta charset="UTF-8">
 	<title>開発</title>
 	<script src="Test.js"></script>
-	<!--mermaid-->
-	<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
-	<script>
-		mermaid.initialize({
-			startOnLoad: true,
-			theme: 'defalt'
-		});
-	</script>
 
 </head>
 
 <body>
-	<div class="mermaid">
-		classDiagram
-		class Test {
-		+main()
-		}
-	</div>
+
+    <div class="mermaid" id="mermaid_id" style="width: 60%; float: right;">
+    </div>
+
+    <script >
+        function mermaid_function(){
+            let script = document.createElement('script');
+            script.src = 'mermaid.js';
+            document.body.appendChild(script);
+            let h=document.getElementById('mermaid_id');
+            h.innerHTML = 'graph TD; C-->B; A-->C; B-->D; C-->D;';
+                console.log('mermaid.js loaded');
+        }
+
+        mermaid_function();
+
+
+    </script>
 </body>
 </html>

@@ -1,6 +1,9 @@
 //関数の引数かどうかのフラグ
 let functionFlag = false;
 
+//出てくる変数を格納する配列
+let variables = [];
+
 //構文解析を行う関数
 function syntaxAnalysis(){
     //登場したクラス名またはメソッド名を格納する配列
@@ -19,20 +22,20 @@ function syntaxAnalysis(){
     }
 
     //mermaidの内容を読み込む
-    let classDirgram="classDiagram\n";
+    /*let classDirgram="classDiagram ";
 
     //クラス図の作成(mermaid形式)
-    classDirgram += "class "+className[0] + " {\n";
+    classDirgram += "class "+className[0] + " {";
     for(let i=1;i<className.length;i++){
-        classDirgram += "+"+className[i] +"()\n";
+        classDirgram += "+"+className[i] +"() ";
     }
 
-    classDirgram += "}\n";
+    classDirgram += "}";
 
     //mermaidのhtmlに追加
     mermaid.innerHTML += classDirgram;
 
-    console.log(classDirgram);
+    console.log(classDirgram);*/
 
 }
 
@@ -256,6 +259,8 @@ function fieldDeclaration(){
 //宣言子の並びの関数(引数は変数の型)
 function declaratorList(variable_type){
 
+    let variabkle_name;
+
     //識別子でなければエラー
     if(tokenNums[index].tokenNum!=1){
         throw new Error("識別子がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
@@ -264,6 +269,99 @@ function declaratorList(variable_type){
     //JavaScriptに識別子を追加
     JavaScriptCode += tokenNums[index].tokenValue+" ";
 
+    //変数名を格納
+    variable_name = tokenNums[index].tokenValue;
+
+    //変数を配列に格納するためにオブジェクトを作成(変数の型は番号から文字へ)
+    if(variable_type==25){
+        let variable = {
+            Name:tokenNums[index].tokenValue,
+            Type:"int",
+            Value:0
+        };
+    
+        //変数を配列に格納
+        variables.push(variable);
+    }else if(variable_type==26){
+        let variable = {
+            Name:tokenNums[index].tokenValue,
+            Type:"byte",
+            Value:0
+        };
+    
+        //変数を配列に格納
+        variables.push(variable);
+    }else if(variable_type==27){
+        let variable = {
+            Name:tokenNums[index].tokenValue,
+            Type:"short",
+            Value:0
+        };
+    
+        //変数を配列に格納
+        variables.push(variable);
+    }else if(variable_type==28){
+        let variable = {
+            Name:tokenNums[index].tokenValue,
+            Type:"long",
+            Value:0
+        };
+    
+        //変数を配列に格納
+        variables.push(variable);
+    }else if(variable_type==29){
+        let variable = {
+            Name:tokenNums[index].tokenValue,
+            Type:"float",
+            Value:0.0
+        };
+    
+        //変数を配列に格納
+        variables.push(variable);
+    }else if(variable_type==30){
+        let variable = {
+            Name:tokenNums[index].tokenValue,
+            Type:"double",
+            Value:0.0
+        };
+    
+        //変数を配列に格納
+        variables.push(variable);
+    }else if(variable_type==31){
+        let variable = {
+            Name:tokenNums[index].tokenValue,
+            Type:"boolean",
+            Value:false
+        };
+    
+        //変数を配列に格納
+        variables.push(variable);
+    }else if(variable_type==32){
+        let variable = {
+            Name:tokenNums[index].tokenValue,
+            Type:"char",
+            Value:''
+        };
+    
+        //変数を配列に格納
+        variables.push(variable);
+    }else if(variable_type==33){
+        let variable = {
+            Name:tokenNums[index].tokenValue,
+            Type:"String",
+            Value:""
+        };
+    
+        //変数を配列に格納
+        variables.push(variable);
+    }else if(variable_type==34){
+        let variable = {
+            Name:tokenNums[index].tokenValue,
+            Type:"ArrayList",
+            Value:[]
+        };
+    }
+    
     index++;
 
     //イコールがあれば次のトークンへ
@@ -275,13 +373,34 @@ function declaratorList(variable_type){
 
         //型がintの場合
         if(variable_type==25){
-            //整数でなければエラー
-            if(tokenNums[index].tokenNum!=35){
+            //整数または識別子でなければエラー
+            if(tokenNums[index].tokenNum!=35 && tokenNums[index].tokenNum!=1){
                 throw new Error("int型に整数がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+            }
+
+            //識別子の場合は型が同じか確認
+            if(tokenNums[index].tokenNum==1){
+                for(let i=0;i<variables.length;i++){
+                    if(variables[i].Name==tokenNums[index].tokenValue){
+                        if(variables[i].Type!="int"){
+                            throw new Error("int型にint型以外の値を代入しようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+                        }
+                    }
+                }
             }
 
             //JavaScriptに整数を追加
             JavaScriptCode += tokenNums[index].tokenValue;
+
+            //すでに変数があるかを確認しあれば値を代入
+            for(let i=0;i<variables.length;i++){
+                if(variables[i].Name==variable_name){
+                    variables[i].Value=tokenNums[index].tokenValue;
+                //最後まで見つからなかった場合はエラー
+                }else if(i==variables.length-1){
+                    throw new Error("変数が見つかりません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+                }
+            }
             index++;
 
             //演算子である間繰り返す
@@ -290,9 +409,20 @@ function declaratorList(variable_type){
                 JavaScriptCode += tokenNums[index].tokenValue;
                 index++;
 
-                //整数でなければエラー
-                if(tokenNums[index].tokenNum!=35){
+                //整数または識別子でなければエラー
+                if(tokenNums[index].tokenNum!=35 || tokenNums[index].tokenNum!=1){
                     throw new Error("int型に整数以外の計算をしようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+                }
+
+                //識別子の場合は型が同じか確認
+                if(tokenNums[index].tokenNum==1){
+                    for(let i=0;i<variables.length;i++){
+                        if(variables[i].Name==tokenNums[index].tokenValue){
+                            if(variables[i].Type!="int"){
+                                throw new Error("int型にint型以外の値を代入しようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+                            }
+                        }
+                    }
                 }
                 //JavaScriptに整数を追加
                 JavaScriptCode += tokenNums[index].tokenValue;
@@ -396,15 +526,36 @@ function declaratorList(variable_type){
             if(tokenNums[index].tokenNum!=36){
                 throw new Error("double型に実数がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
+
+            //JavaScriptに実数を追加
+            JavaScriptCode += tokenNums[index].tokenValue;
+
+            //すでに変数があるかを確認しあれば値を代入
+            for(let i=0;i<variables.length;i++){
+                if(variables[i].Name==variable_name){
+                    variables[i].Value=tokenNums[index].tokenValue;
+                //最後まで見つからなかった場合はエラー
+                }else if(i==variables.length-1){
+                    throw new Error("変数が見つかりません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+                }
+            }
+
             index++;
 
             //演算子である間繰り返す
             while(tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51 || tokenNums[index].tokenNum==52 || tokenNums[index].tokenNum==53 || tokenNums[index].tokenNum==54){
+
+                //演算子を追加
+                JavaScriptCode += tokenNums[index].tokenValue;
                 index++;
                 //実数でなければエラー
                 if(tokenNums[index].tokenNum!=36){
                     throw new Error("double型に実数以外の計算をしようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
                 }
+
+                //JavaScriptに実数を追加
+                JavaScriptCode += tokenNums[index].tokenValue;
+
                 index++;
             }
 

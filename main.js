@@ -16,8 +16,8 @@ let index=0;
 //JavaのコードをJavaScriptに変換する際に使用する変数
 let JavaScriptCode="";
 
-//classがmeraidのタブを取得
-let mermaid = document.getElementById('mermaid');
+//idがmeraidのタブを取得
+let mermaid_element = document.getElementById('mermaid_id');
 
 //実行ボタンが押されたときの処理
 runButton.addEventListener('click', function () {
@@ -151,6 +151,7 @@ runButton.addEventListener('click', function () {
         }
     }
 
+    /*
     //idがrigitに表形式で表示
     const table = document.getElementById('right');
     let tr="<tr><th>添字</th><th>トークン番号</th><th>トークン</th><th>行数</th></tr>";
@@ -162,24 +163,46 @@ runButton.addEventListener('click', function () {
 
     table.innerHTML=tr;
 
-    try{
-        //構文解析を行う
+    */
+
+    try {
+        // 構文解析を行う
         syntaxAnalysis();
-
-        //エラーが発生しなかった場合はmessageに"正常終了"を出力
+    
+        // エラーが発生しなかった場合はmessageに"正常終了"を出力
         message.value += "正常終了\n\n";
-
-        eval(JavaScriptCode);
-
-    }catch(e){
-
-        //エラーが発生した場合はエラーメッセージをmessageに出力
-        message.value += e.message+"\n";
+    
+        // evalの代わりにFunctionコンストラクタを使用
+        let func = new Function(JavaScriptCode);
+        func();
+    
+        // 変数を表で表示
+        const table = document.getElementById('right');
+        let tr = "<tr><th>型</th><th>変数名</th><th>値</th></tr>";
+    
+        for (let i = 0; i < variables.length; i++) {
+            tr += "<tr><td>" + variables[i].Type + "</td><td>" + variables[i].Name + "</td><td>"+variables[i].Value+"</td></tr>";
+        }
+    
+        table.innerHTML = tr;
+    
+    } catch (e) {
+        // エラーが発生した場合はエラーメッセージをmessageに出力
+        message.value += e.message + "\n";
     }
 
     message.value += "\n";
 
     message.value += JavaScriptCode+"\n";
+    
+    // javascriptを再度読み込み
+    let script = document.createElement('script');
+    script.src = 'mermaid.js';
+    script.onload = function () {
+        // mermaidの初期化
+        mermaid.initialize({ startOnLoad: true });
+    };
+    document.body.appendChild(script);
 
 });
 
