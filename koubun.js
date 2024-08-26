@@ -22,20 +22,22 @@ function syntaxAnalysis(){
     }
 
     //mermaidの内容を読み込む
-    /*let classDirgram="classDiagram ";
+    let classDirgram='classDiagram \n';
 
     //クラス図の作成(mermaid形式)
-    classDirgram += "class "+className[0] + " {";
+    classDirgram += 'class '+className[0] + ' {\n';
     for(let i=1;i<className.length;i++){
-        classDirgram += "+"+className[i] +"() ";
+        classDirgram += '+'+className[i] +'()\n';
     }
 
-    classDirgram += "}";
+    classDirgram += '}\n';
 
-    //mermaidのhtmlに追加
-    mermaid.innerHTML += classDirgram;
+    //mermaidの再描画
+    mermaid_element.removeAttribute('data-processed');
+    mermaid_element.innerHTML = classDirgram;
+    mermaid.init();
 
-    console.log(classDirgram);*/
+    console.log(classDirgram);
 
 }
 
@@ -367,6 +369,12 @@ function declaratorList(variable_type){
     //イコールがあれば次のトークンへ
     if(tokenNums[index].tokenNum==70){
 
+        //計算式を格納する配列(逆ポーランド)
+        let calculation = [];
+
+        //最終的に識別子に代入する値を格納する変数
+        let assignment_value;
+
         //JavaScriptに=を追加
         JavaScriptCode += "=";
         index++;
@@ -378,56 +386,153 @@ function declaratorList(variable_type){
                 throw new Error("int型に整数がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
-            //識別子の場合は型が同じか確認
+            //識別子の場合は型が同じか確認して違う場合はエラー
             if(tokenNums[index].tokenNum==1){
                 for(let i=0;i<variables.length;i++){
                     if(variables[i].Name==tokenNums[index].tokenValue){
                         if(variables[i].Type!="int"){
                             throw new Error("int型にint型以外の値を代入しようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
                         }
+
+                        //計算式の配列に識別子を追加
+                        calculation.push(tokenNums[index].tokenValue);
                     }
                 }
+            }else {
+                //計算式の配列に整数を追加
+                calculation.push(tokenNums[index].tokenValue);
             }
 
             //JavaScriptに整数を追加
             JavaScriptCode += tokenNums[index].tokenValue;
 
-            //すでに変数があるかを確認しあれば値を代入
-            for(let i=0;i<variables.length;i++){
-                if(variables[i].Name==variable_name){
-                    variables[i].Value=tokenNums[index].tokenValue;
-                //最後まで見つからなかった場合はエラー
-                }else if(i==variables.length-1){
-                    throw new Error("変数が見つかりません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-                }
-            }
             index++;
+
+            //計算式を後置法にするために演算子を格納する配列(スタック)
+            let stack = [];
 
             //演算子である間繰り返す
             while(tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51 || tokenNums[index].tokenNum==52 || tokenNums[index].tokenNum==53 || tokenNums[index].tokenNum==54){
                 //演算子を追加
                 JavaScriptCode += tokenNums[index].tokenValue;
+
+                if(stack.length==0){
+                    //スタックに演算子を追加
+                    stack.push(tokenNums[index].tokenValue);
+                }else {
+
+                    //演算子の優先順位を確認し、計算式の配列に追加
+                    if(tokenNums[index].tokenNum==50){
+                        //スタックが空でない間またはスタックの最後の要素が-または+である間繰り返す
+                        while(stack[stack.length-1]=='-' || stack[stack.length-1]=='+' || stack[stack.length-1]=='*' || stack[stack.length-1]=='/'){
+                            //計算式の配列にスタックの最後の要素を追加
+                            calculation.push(stack.pop());
+                        }
+
+                        //スタックに+を追加
+                        stack.push(tokenNums[index].tokenValue);
+                    }else if(tokenNums[index].tokenNum==51){
+                        //スタックが空でない間またはスタックの最後の要素が-または+である間繰り返す
+                        while(stack[stack.length-1]=='-' || stack[stack.length-1]=='+' || stack[stack.length-1]=='*' || stack[stack.length-1]=='/'){
+                            //計算式の配列にスタックの最後の要素を追加
+                            calculation.push(stack.pop());
+                        }
+
+                        //スタックに-を追加
+                        stack.push(tokenNums[index].tokenValue);
+
+                    }else if(tokenNums[index].tokenNum==52){
+                        //スタックが空でない間またはスタックの最後の要素が*または/または+または-である間繰り返す
+                        while(stack[stack.length-1]=='*' || stack[stack.length-1]=='/' ){
+                            //計算式の配列にスタックの最後の要素を追加
+                            calculation.push(stack.pop());
+                        }
+
+                        //スタックに*を追加
+                        stack.push(tokenNums[index].tokenValue);
+                    }else if(tokenNums[index].tokenNum==53){
+                        //スタックが空でない間またはスタックの最後の要素が*または/または+または-である間繰り返す
+                        while(stack[stack.length-1]=='*' || stack[stack.length-1]=='/'){
+                            //計算式の配列にスタックの最後の要素を追加
+                            calculation.push(stack.pop());
+                        }
+
+                        //スタックに/を追加
+                        stack.push(tokenNums[index].tokenValue);
+                    }
+                }
+                
                 index++;
 
                 //整数または識別子でなければエラー
-                if(tokenNums[index].tokenNum!=35 || tokenNums[index].tokenNum!=1){
+                if(tokenNums[index].tokenNum!=35 && tokenNums[index].tokenNum!=1){
                     throw new Error("int型に整数以外の計算をしようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
                 }
 
-                //識別子の場合は型が同じか確認
+                //識別子の場合は型が同じか確認して違う場合はエラー
                 if(tokenNums[index].tokenNum==1){
                     for(let i=0;i<variables.length;i++){
                         if(variables[i].Name==tokenNums[index].tokenValue){
                             if(variables[i].Type!="int"){
                                 throw new Error("int型にint型以外の値を代入しようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
                             }
+
+                            //計算式の配列に識別子を追加
+                            calculation.push(tokenNums[index].tokenValue);
                         }
                     }
+                }else {
+                    //計算式の配列に整数を追加
+                    calculation.push(tokenNums[index].tokenValue);
                 }
                 //JavaScriptに整数を追加
                 JavaScriptCode += tokenNums[index].tokenValue;
                 index++;
             }
+
+            //スタックが空でない間繰り返す
+            while(stack.length!=0){
+                //計算式の配列にスタックの最後の要素を追加
+                calculation.push(stack.pop());
+            }
+
+            console.log(calculation);
+
+            //計算式の配列を計算
+            for(let i=0;i<calculation.length;i++){
+                if(calculation[i]=="+" || calculation[i]=="-" || calculation[i]=="*" || calculation[i]=="/"){
+                    //数字に変換して計算
+                    let num1 = Number(calculation[i-2]);
+                    let num2 = Number(calculation[i-1]);
+                    let result;
+                    if(calculation[i]=="+"){
+                        result = num1 + num2;
+                    }else if(calculation[i]=="-"){
+                        result = num1 - num2;
+                    }else if(calculation[i]=="*"){
+                        result = num1 * num2;
+                    }else if(calculation[i]=="/"){
+                        result = num1 / num2;
+                    }
+
+                    calculation.splice(i-2,3,result);
+                    i = 0;
+                }
+            }
+
+            //計算結果を代入
+            assignment_value = calculation[0];
+
+            //すでに変数があるかを確認しあれば値を代入
+            for(let i=0;i<variables.length;i++){
+                if(variables[i].Name==variable_name){
+                    variables[i].Value=assignment_value;
+                //最後まで見つからなかった場合はエラー
+                }else if(i==variables.length-1){
+                    throw new Error("変数が見つかりません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+                }
+            }
+
         //型がbyteの場合
         }else if(variable_type==26){    
             //整数でなければエラー

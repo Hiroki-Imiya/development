@@ -4,7 +4,13 @@
 	<meta charset="UTF-8">
 	<title>開発</title>
 	<script src="Test.js"></script>
-
+    <script src="mermaid.js"></script>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'defalt'
+        });
+    </script>
 </head>
 
 <body>
@@ -14,15 +20,14 @@
 
     <script >
         function mermaid_function(){
-            let script = document.createElement('script');
-            script.src = 'mermaid.js';
-            document.body.appendChild(script);
             let h=document.getElementById('mermaid_id');
+            h.removeAttribute('data-processed');
             h.innerHTML = 'graph TD; C-->B; A-->C; B-->D; C-->D;';
-                console.log('mermaid.js loaded');
+            mermaid.init();
+            console.log('mermaid.js loaded');
         }
 
-        mermaid_function();
+        //mermaid_function();
 
 
     </script>

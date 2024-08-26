@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>開発</title>
-
+    <script src="mermaid.js"></script>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'defalt'
+        });
+    </script>
 
 </head>
 <body>
@@ -25,7 +31,7 @@
     <textarea id="message" style="width: 39%; height: 400px; float: left;" readonly></textarea>
 
     <!--mermaidの設定-->
-    <div class="mermaid" style="width: 60%; float: right;"> 
+    <div id="mermaid_id" class="mermaid" style="width: 60%; float: right;"> 
         classDiagram
         class Animal{
             +int age

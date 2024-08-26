@@ -195,14 +195,6 @@ runButton.addEventListener('click', function () {
 
     message.value += JavaScriptCode+"\n";
     
-    // javascriptを再度読み込み
-    let script = document.createElement('script');
-    script.src = 'mermaid.js';
-    script.onload = function () {
-        // mermaidの初期化
-        mermaid.initialize({ startOnLoad: true });
-    };
-    document.body.appendChild(script);
 
 });
 
