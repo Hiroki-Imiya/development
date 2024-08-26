@@ -1270,12 +1270,15 @@ function identifierStatement(){
     //イコールまたは＋またはマイナスがあれば次のトークンへ
     if(tokenNums[index].tokenNum==70 || tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51){
 
+        //識別子を保存
+        let identifier = tokenNums[index-1].tokenValue;
+
         //イコールまたは＋またはマイナスを追加
         JavaScriptCode += tokenNums[index].tokenValue;
         index++;
 
         //演算子の関数
-        operatorStatement();
+        operatorStatement(identifier);
     }
 
 }
@@ -1386,12 +1389,37 @@ function printfStatement(){
 }
 
 //演算子の関数
-function operatorStatement(){
+function operatorStatement(identifier){
+
+    //演算子を格納
+    let  stack = [];
+
+    //後置法に変換した計算式を格納する配列
+    let calculation = [];
+
+    //計算結果を格納する変数
+    let assignment_value;
+
+    //一個前のトークンが演算子であればそれを格納
+    if(tokenNums[index-1].tokenNum==50 || tokenNums[index-1].tokenNum==51 || tokenNums[index-1].tokenNum==52 || tokenNums[index-1].tokenNum==53 || tokenNums[index-1].tokenNum==54){
+        stack.push(tokenNums[index-1].tokenValue);
+    }
 
     //識別子または整数であれば次のトークンへ
     if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==35){
 
-        //JavaScriptに識別子または整数を追加
+
+        //識別子であれば変数の値を取得
+        if(tokenNums[index].tokenNum==1){
+            for(let i=0;i<variables.length;i++){
+                if(variables[i].Name==tokenNums[index].tokenValue){
+                    calculation.push(variables[i].Value);
+                }
+            }
+        }else{
+            calculation.push(tokenNums[index].tokenValue);
+        }
+        //JavaScriptに識別子または整数を追加 
         JavaScriptCode += tokenNums[index].tokenValue;
         index++;
     }
@@ -1411,23 +1439,186 @@ function operatorStatement(){
         JavaScriptCode += tokenNums[index].tokenValue;
         //インクリメント用の変数
         let increment_index=tokenNums[index].tokenNum;
+
+        if(stack.length==0){
+            //スタックに演算子を追加
+            stack.push(tokenNums[index].tokenValue);
+        }else {
+
+            //演算子の優先順位を確認し、計算式の配列に追加
+            if(tokenNums[index].tokenNum==50){
+                //スタックが空でない間またはスタックの最後の要素が-または+である間繰り返す
+                while(stack[stack.length-1]=='-' || stack[stack.length-1]=='+' || stack[stack.length-1]=='*' || stack[stack.length-1]=='/'){
+                    //計算式の配列にスタックの最後の要素を追加
+                    calculation.push(stack.pop());
+                }
+
+                //スタックに+を追加
+                stack.push(tokenNums[index].tokenValue);
+            }else if(tokenNums[index].tokenNum==51){
+                //スタックが空でない間またはスタックの最後の要素が-または+である間繰り返す
+                while(stack[stack.length-1]=='-' || stack[stack.length-1]=='+' || stack[stack.length-1]=='*' || stack[stack.length-1]=='/'){
+                    //計算式の配列にスタックの最後の要素を追加
+                    calculation.push(stack.pop());
+                }
+
+                //スタックに-を追加
+                stack.push(tokenNums[index].tokenValue);
+
+            }else if(tokenNums[index].tokenNum==52){
+                //スタックが空でない間またはスタックの最後の要素が*または/または+または-である間繰り返す
+                while(stack[stack.length-1]=='*' || stack[stack.length-1]=='/' ){
+                    //計算式の配列にスタックの最後の要素を追加
+                    calculation.push(stack.pop());
+                }
+
+                //スタックに*を追加
+                stack.push(tokenNums[index].tokenValue);
+            }else if(tokenNums[index].tokenNum==53){
+                //スタックが空でない間またはスタックの最後の要素が*または/または+または-である間繰り返す
+                while(stack[stack.length-1]=='*' || stack[stack.length-1]=='/'){
+                    //計算式の配列にスタックの最後の要素を追加
+                    calculation.push(stack.pop());
+                }
+
+                //スタックに/を追加
+                stack.push(tokenNums[index].tokenValue);
+            }
+        }
+
+        //一個前も演算子であればインクリメント
+        if(increment_index==50 && tokenNums[index-1].tokenNum==50){
+             //identifierの値を取得
+             let value;
+
+             for(let i=0;i<variables.length;i++){
+                 if(variables[i].Name==identifier){
+                     value = variables[i].Value;
+ 
+                     //インクリメント
+                     value++;
+ 
+                     //変数の値を変更
+                     variables[i].Value = value;
+                 }
+             }
+ 
+             stack=[];
+             calculation=[];   
+        }else if(increment_index==51 && tokenNums[index-1].tokenNum==51){
+            //identifierの値を取得
+            let value;
+
+            for(let i=0;i<variables.length;i++){
+                if(variables[i].Name==identifier){
+                    value = variables[i].Value;
+
+                    //インクリメント
+                    value--;
+
+                    //変数の値を変更
+                    variables[i].Value = value;
+                }
+            }
+
+            stack=[];
+            calculation=[];
+        }
         index++;
         //識別子または整数であれば次のトークンへ
         if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==35){
             //JavaScriptに識別子または整数を追加
             JavaScriptCode += tokenNums[index].tokenValue;
+
+            //識別子であれば変数の値を取得
+            if(tokenNums[index].tokenNum==1){
+                for(let i=0;i<variables.length;i++){
+                    if(variables[i].Name==tokenNums[index].tokenValue){
+                        calculation.push(variables[i].Value);
+                    }
+                }
+            }else{
+                calculation.push(tokenNums[index].tokenValue);
+            }
+
             index++;
         }
-        
+
         //インクリメントが++または--の場合は次のトークンへ
         if((increment_index==50 && tokenNums[index].tokenNum==50) || (increment_index==51 && tokenNums[index].tokenNum==51)){
+            
+            //identifierの値を取得
+            let value;
 
+            for(let i=0;i<variables.length;i++){
+                if(variables[i].Name==identifier){
+                    value = variables[i].Value;
+
+                    //インクリメント
+                    if(increment_index==50){
+                        value++;
+                    }else if(increment_index==51){
+                        value--;
+                    }
+
+                    //変数の値を変更
+                    variables[i].Value = value;
+                }
+            }
+
+            stack=[];
+            calculation=[];
             //JavaScriptに++または--を追加
             JavaScriptCode += tokenNums[index].tokenValue;
             index++;
             break;
         }
 
+    }
+
+    //スタックが空でない間繰り返す
+    while(stack.length!=0){
+        //計算式の配列にスタックの最後の要素を追加
+        calculation.push(stack.pop());
+    }
+
+    //計算式の配列を計算
+    for(let i=0;i<calculation.length;i++){
+        if(calculation[i]=="+" || calculation[i]=="-" || calculation[i]=="*" || calculation[i]=="/"){
+            //数字に変換して計算
+            let num1 = Number(calculation[i-2]);
+            let num2 = Number(calculation[i-1]);
+            let result;
+            if(calculation[i]=="+"){
+                result = num1 + num2;
+            }else if(calculation[i]=="-"){
+                result = num1 - num2;
+            }else if(calculation[i]=="*"){
+                result = num1 * num2;
+            }else if(calculation[i]=="/"){
+                result = num1 / num2;
+            }
+
+            calculation.splice(i-2,3,result);
+            i = 0;
+        }
+    }
+
+    //計算結果を代入
+    assignment_value = calculation[0];
+
+    console.log(identifier);
+
+    console.log(variables);
+
+    //すでに変数があるかを確認しあれば値を代入
+    for(let i=0;i<variables.length;i++){
+        if(variables[i].Name==identifier){
+            variables[i].Value=assignment_value;
+        //最後まで見つからなかった場合はエラー
+        }else if(i==variables.length-1){
+            throw new Error("変数が見つかりません.トークン名:"+identifier+"配列の添字:"+index);
+        }
     }
 
 }
