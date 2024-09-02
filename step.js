@@ -1,8 +1,8 @@
 //ステップ実行の際に新たに変数を追加する関数
-//引数：変数名、変数の型、変数の値
+//引数：変数名、変数の型、変数の値，スコープ
 //返り値：なし
-function addVariable(variableName, type, value){
-	variables.push({Name:variableName, Type:type, Value:value});
+function addVariable(variableName, type, value, d_scope){
+	variables.push({Name:variableName, Type:type, Value:value,Scope:d_scope});
 }
 
 

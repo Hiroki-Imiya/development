@@ -172,10 +172,10 @@ runButton.addEventListener('click', function () {
     
         // 変数を表で表示
         const table = document.getElementById('right');
-        let tr = "<tr><th>型</th><th>変数名</th><th>値</th></tr>";
+        let tr = "<tr><th>型</th><th>変数名</th><th>値</th><th>スコープ</th></tr>";
     
         for (let i = 0; i < variables.length; i++) {
-            tr += "<tr><td>" + variables[i].Type + "</td><td>" + variables[i].Name + "</td><td>"+variables[i].Value+"</td></tr>";
+            tr += "<tr><td>" + variables[i].Type + "</td><td>" + variables[i].Name + "</td><td>"+variables[i].Value+"</td><td>"+variables[i].Scope+"</td></tr>";
         }
     
         table.innerHTML = tr;
@@ -339,10 +339,10 @@ stepButton.addEventListener('click', function () {
 
     // 変数を表で表示
     const table = document.getElementById('right');
-    let tr = "<tr><th>型</th><th>変数名</th><th>値</th></tr>";
+    let tr = "<tr><th>型</th><th>変数名</th><th>値</th><th>スコープ</th></tr>";
 
     for (let i = 0; i < variables.length; i++) {
-        tr += "<tr><td>" + variables[i].Type + "</td><td>" + variables[i].Name + "</td><td>"+variables[i].Value+"</td></tr>";
+        tr += "<tr><td>" + variables[i].Type + "</td><td>" + variables[i].Name + "</td><td>"+variables[i].Value+"</td><td>"+variables[i].Scope+"</td></tr>";
     }
 
     table.innerHTML = tr;

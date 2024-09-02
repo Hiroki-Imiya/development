@@ -7,8 +7,13 @@ let variables = [];
 //配列かどうかのフラグ
 let arrayFlag = false;
 
+//プログラムのスコープを示す変数
+let scope ;
+
 //構文解析を行う関数
 function syntaxAnalysis(){
+
+    scope = 0;
 
     //出てくる変数を格納する配列を初期化
     variables = [];
@@ -168,6 +173,8 @@ function classDefinition(className){
         //(であれば次のトークンへ
         }else {
 
+            scope++;
+
             //JavaScriptに(を追加
             JavaScriptCode += "(";
             index++;
@@ -296,17 +303,6 @@ function declaratorList(variable_type){
                 throw new Error("int型に整数がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
-            //識別子の場合は型が同じか確認して違う場合はエラー
-            if(tokenNums[index].tokenNum==1){
-                for(let i=0;i<variables.length;i++){
-                    if(variables[i].Name==tokenNums[index].tokenValue){
-                        if(variables[i].Type!="int"){
-                            throw new Error("int型にint型以外の値を代入しようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-                        }
-                    }
-                }
-            }
-
             //JavaScriptに整数を追加
             JavaScriptCode += tokenNums[index].tokenValue;
 
@@ -322,17 +318,6 @@ function declaratorList(variable_type){
                 //整数または識別子でなければエラー
                 if(tokenNums[index].tokenNum!=35 && tokenNums[index].tokenNum!=1){
                     throw new Error("int型に整数以外の計算をしようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-                }
-
-                //識別子の場合は型が同じか確認して違う場合はエラー
-                if(tokenNums[index].tokenNum==1){
-                    for(let i=0;i<variables.length;i++){
-                        if(variables[i].Name==tokenNums[index].tokenValue){
-                            if(variables[i].Type!="int"){
-                                throw new Error("int型にint型以外の値を代入しようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-                            }
-                        }
-                    }
                 }
                 //JavaScriptに整数を追加
                 JavaScriptCode += tokenNums[index].tokenValue;
@@ -567,28 +552,29 @@ function declaratorList(variable_type){
         if(variable_type==25){
             //配列の場合
             if(arrayFlag){
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"int[]\",[]);\n";
+                JavaScriptCode += "addVariable(\""+variable_name+"\",\"int[]\",[],"+scope+");\n";
 
                 //フラグを戻す
                 arrayFlag = false;
             }else {
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"int\",0);\n";
+                JavaScriptCode += "addVariable(\""+variable_name+"\",\"int\",0,"+scope+");\n";
             }
         }else if(variable_type==26){
             //配列の場合
             if(arrayFlag){
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte[]\",[]);\n";
+                JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte[]\",[],"+scope+");\n";
 
                 //フラグを戻す
                 arrayFlag = false;
             }else {
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte\",0);\n";
+                JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte\",0,"+scope+");\n";
             }
         }else if(variable_type==27){
             let variable = {
                 Name:variable_name,
                 Type:"short",
-                Value:0
+                Value:0,
+                Scope:scope
             };
         
             //変数を配列に格納
@@ -597,7 +583,8 @@ function declaratorList(variable_type){
             let variable = {
                 Name:variable_name,
                 Type:"long",
-                Value:0
+                Value:0,
+                Scope:scope
             };
         
             //変数を配列に格納
@@ -606,7 +593,8 @@ function declaratorList(variable_type){
             let variable = {
                 Name:variable_name,
                 Type:"float",
-                Value:0.0
+                Value:0.0,
+                Scope:scope
             };
         
             //変数を配列に格納
@@ -614,39 +602,41 @@ function declaratorList(variable_type){
         }else if(variable_type==30){
             //配列の場合
             if(arrayFlag){
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"double[]\",[]);\n";
+                JavaScriptCode += "addVariable(\""+variable_name+"\",\"double[]\",[],"+scope+");\n";
 
                 //フラグを戻す
                 arrayFlag = false;
             }else {
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"double\",0.0);\n";
+                JavaScriptCode += "addVariable(\""+variable_name+"\",\"double\",0.0,"+scope+");\n";
             }
         }else if(variable_type==31){
             let variable = {
                 Name:variable_name,
                 Type:"boolean",
-                Value:false
+                Value:false,
+                Scope:scope
             };
         
             //変数を配列に格納
             variables.push(variable);
         }else if(variable_type==32){
-            JavaScriptCode += "addVariable(\""+variable_name+"\",\"char\",'a');\n";
+            JavaScriptCode += "addVariable(\""+variable_name+"\",\"char\",'a',"+scope+");\n";
         }else if(variable_type==33){
             //配列の場合
             if(arrayFlag){
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"String[]\",[]);\n";
+                JavaScriptCode += "addVariable(\""+variable_name+"\",\"String[]\",[],"+scope+");\n";
 
                 //フラグを戻す
                 arrayFlag = false;
             }else {
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"String\",\"\");\n";
+                JavaScriptCode += "addVariable(\""+variable_name+"\",\"String\",\"\","+scope+");\n";
             }
         }else if(variable_type==34){
             let variable = {
                 Name:variable_name,
                 Type:"ArrayList",
-                Value:[]
+                Value:[],
+                Scope:scope
             };
 
             //変数を配列に格納
@@ -667,28 +657,29 @@ function declaratorList(variable_type){
             if(variable_type==25){
                 //配列の場合
                 if(arrayFlag){
-                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"int[]\",[]);\n";
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"int[]\",[],"+scope+");\n";
 
                     //フラグを戻す
                     arrayFlag = false;
                 }else {
-                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"int\",0);\n";
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"int\",0,"+scope+");\n";
                 }
             }else if(variable_type==26){
                 //配列の場合
                 if(arrayFlag){
-                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte[]\",[]);\n";
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte[]\",[],"+scope+");\n";
 
                     //フラグを戻す
                     arrayFlag = false;
                 }else {
-                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte\",0);\n";
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte\",0,"+scope+");\n";
                 }
             }else if(variable_type==27){
                 let variable = {
                     Name:variable_name,
                     Type:"short",
-                    Value:0
+                    Value:0,
+                    Scope:scope
                 };
             
                 //変数を配列に格納
@@ -697,7 +688,8 @@ function declaratorList(variable_type){
                 let variable = {
                     Name:variable_name,
                     Type:"long",
-                    Value:0
+                    Value:0,
+                    Scope:scope
                 };
             
                 //変数を配列に格納
@@ -706,7 +698,8 @@ function declaratorList(variable_type){
                 let variable = {
                     Name:variable_name,
                     Type:"float",
-                    Value:0.0
+                    Value:0.0,
+                    Scope:scope
                 };
             
                 //変数を配列に格納
@@ -714,39 +707,41 @@ function declaratorList(variable_type){
             }else if(variable_type==30){
                 //配列の場合
                 if(arrayFlag){
-                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"double[]\",[]);\n";
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"double[]\",[],"+scope+");\n";
 
                     //フラグを戻す
                     arrayFlag = false;
                 }else {
-                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"double\",0.0);\n";
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"double\",0.0,"+scope+");\n";
                 }
             }else if(variable_type==31){
                 let variable = {
                     Name:variable_name,
                     Type:"boolean",
-                    Value:false
+                    Value:false,
+                    Scope:scope
                 };
             
                 //変数を配列に格納
                 variables.push(variable);
             }else if(variable_type==32){
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"char\",'a');\n";
+                JavaScriptCode += "addVariable(\""+variable_name+"\",\"char\",'a',"+scope+");\n";
             }else if(variable_type==33){
                 //配列の場合
                 if(arrayFlag){
-                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"String[]\",[]);\n";
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"String[]\",[],"+scope+");\n";
 
                     //フラグを戻す
                     arrayFlag = false;
                 }else {
-                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"String\",\"\");\n";
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"String\",\"\","+scope+");\n";
                 }
             }else if(variable_type==34){
                 let variable = {
                     Name:variable_name,
                     Type:"ArrayList",
-                    Value:[]
+                    Value:[],
+                    Scope:scope
                 };
 
                 //変数を配列に格納
@@ -758,28 +753,29 @@ function declaratorList(variable_type){
             if(variable_type==25){
                 //配列の場合
                 if(arrayFlag){
-                    addVariable(variable_name,"int[]",[]);
+                    addVariable(variable_name,"int[]",[],scope);
 
                     //フラグを戻す
                     arrayFlag = false;
                 }else {
-                    addVariable(variable_name,"int",0);
+                    addVariable(variable_name,"int",0,scope);
                 }
             }else if(variable_type==26){
                 //配列の場合
                 if(arrayFlag){
-                    addVariable(variable_name,"byte[]",[]);
+                    addVariable(variable_name,"byte[]",[],scope);
 
                     //フラグを戻す
                     arrayFlag = false;
                 }else {
-                    addVariable(variable_name,"byte",0);
+                    addVariable(variable_name,"byte",0,scope);
                 }
             }else if(variable_type==27){
                 let variable = {
                     Name:variable_name,
                     Type:"short",
-                    Value:0
+                    Value:0,
+                    Scope:scope
                 };
             
                 //変数を配列に格納
@@ -788,7 +784,8 @@ function declaratorList(variable_type){
                 let variable = {
                     Name:variable_name,
                     Type:"long",
-                    Value:0
+                    Value:0,
+                    Scope:scope
                 };
             
                 //変数を配列に格納
@@ -797,7 +794,8 @@ function declaratorList(variable_type){
                 let variable = {
                     Name:variable_name,
                     Type:"float",
-                    Value:0.0
+                    Value:0.0,
+                    Scope:scope
                 };
             
                 //変数を配列に格納
@@ -805,18 +803,19 @@ function declaratorList(variable_type){
             }else if(variable_type==30){
                 //配列の場合
                 if(arrayFlag){
-                    addVariable(variable_name,"double[]",[]);
+                    addVariable(variable_name,"double[]",[],scope);
 
                     //フラグを戻す
                     arrayFlag = false;
                 }else {
-                    addVariable(variable_name,"double",0.0);
+                    addVariable(variable_name,"double",0.0,scope);
                 }
             }else if(variable_type==31){
                 let variable = {
                     Name:variable_name,
                     Type:"boolean",
-                    Value:false
+                    Value:false,
+                    Scope:scope
                 };
             
                 //変数を配列に格納
@@ -826,18 +825,19 @@ function declaratorList(variable_type){
             }else if(variable_type==33){
                 //配列の場合
                 if(arrayFlag){
-                    addVariable(variable_name,"String[]",[]);
+                    addVariable(variable_name,"String[]",[],scope);
 
                     //フラグを戻す
                     arrayFlag = false;
                 }else {
-                    addVariable(variable_name,"String","");
+                    addVariable(variable_name,"String","",scope);
                 }
             }else if(variable_type==34){
                 let variable = {
                     Name:variable_name,
                     Type:"ArrayList",
-                    Value:[]
+                    Value:[],
+                    Scope:scope
                 };
 
                 //変数を配列に格納
@@ -864,7 +864,6 @@ function functionDeclaration(){
     if(tokenNums[index].tokenNum!=57){
         throw new Error("{がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
-
     //JavaScriptに{を追加
     JavaScriptCode += "{\n";
     index++;
@@ -901,6 +900,7 @@ function functionDeclaration(){
 
     //JavaScriptに}を追加
     JavaScriptCode += "}\n";
+    scope--;
 }
 
 //文の関数
@@ -994,6 +994,7 @@ function ifStatement(){
     if(tokenNums[index].tokenNum!=57){
         throw new Error("{がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
+    scope++;
 
     //JavaScriptに{を追加
     JavaScriptCode += "{\n";
@@ -1013,6 +1014,8 @@ function ifStatement(){
     JavaScriptCode += "}";
     index++;
 
+    scope--;
+
     //elseがある間繰り返す
     while(tokenNums[index].tokenNum==8){
         //JavaScriptにelseを追加
@@ -1027,7 +1030,7 @@ function ifStatement(){
 
         //{の場合
         }else if(tokenNums[index].tokenNum==57){
-
+            scope++;
             //JavaScriptに{を追加
             JavaScriptCode += "{\n";
             index++;
@@ -1039,6 +1042,7 @@ function ifStatement(){
             if(tokenNums[index].tokenNum!=58){
                 throw new Error("}がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
+            scope--;
 
             //JavaScriptに}を追加
             JavaScriptCode += "}";
@@ -1174,6 +1178,7 @@ function whileStatement(){
     if(tokenNums[index].tokenNum!=57){
         throw new Error("{がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
+    scope++;
 
     //JavaScriptに{を追加
     JavaScriptCode += "{\n";
@@ -1191,6 +1196,8 @@ function whileStatement(){
         }
 
     }
+
+    scope--;
 
     //JavaScriptに}を追加
     JavaScriptCode += "}\n";
@@ -1259,6 +1266,7 @@ function forStatement(){
     if(tokenNums[index].tokenNum!=57){
         throw new Error("{がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
+    scope++;
 
     //JavaScriptに{を追加
     JavaScriptCode += "{\n";
@@ -1278,6 +1286,8 @@ function forStatement(){
 
     //JavaScriptに}を追加
     JavaScriptCode += "}\n";
+
+    scope--;
 }
 
 //return文の関数
