@@ -1,6 +1,6 @@
 //開発支援プログラムのメイン部分
 
-let runButton = document.getElementById('run');
+let compileButton = document.getElementById('compile');
 
 //現在読み込んでいる文字を保存する
 let token="";
@@ -24,7 +24,7 @@ let mainFunction;
 
 
 //実行ボタンが押されたときの処理
-runButton.addEventListener('click', function () {
+compileButton.addEventListener('click', function () {
 
     JavaScriptCode="";
 
@@ -166,8 +166,13 @@ runButton.addEventListener('click', function () {
         message.value += "正常終了\n\n";
     
         // evalの代わりにFunctionコンストラクタを使用
+        //JavaScriptCodeに変換したコードを格納(クラス名を返り値として返す)
         let func = new Function(JavaScriptCode + "return "+className+";");
+
+        // クラスを取得
         const ClassFunc=func();
+
+        // クラスのmainメソッドの情報を取得
         mainFunction=ClassFunc.main();
     
         // 変数を表で表示
