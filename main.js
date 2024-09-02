@@ -19,6 +19,10 @@ let JavaScriptCode="";
 //idがmeraidのタブを取得
 let mermaid_element = document.getElementById('mermaid_id');
 
+//ステップ実行をするための関数
+let mainFunction;
+
+
 //実行ボタンが押されたときの処理
 runButton.addEventListener('click', function () {
 
@@ -42,7 +46,10 @@ runButton.addEventListener('click', function () {
     //入力されたプログラムを取得
     let code = editor.getSession().getValue();
 
+    //取得したプログラムをコンソールに出力
+    console.log("==入力されたプログラム==");
     console.log(code);
+    console.log("====================================");
 
     //codeの内容を字句解析する
     for (let i = 0; i < code.length; i++) {
@@ -151,30 +158,17 @@ runButton.addEventListener('click', function () {
         }
     }
 
-    /*
-    //idがrigitに表形式で表示
-    const table = document.getElementById('right');
-    let tr="<tr><th>添字</th><th>トークン番号</th><th>トークン</th><th>行数</th></tr>";
-
-    for(let i=0;i<tokenNums.length;i++){
-
-        tr+="<tr><td>"+i+"</td><td>"+tokenNums[i].tokenNum+"</td><td>"+tokenNums[i].tokenValue+"</td><td>"+tokenNums[i].column+"</td></tr>";
-    }
-
-    table.innerHTML=tr;
-
-    */
-
     try {
-        // 構文解析を行う
-        syntaxAnalysis();
+        // 構文解析を行う(返り値はクラス名)
+        const className=syntaxAnalysis();
     
         // エラーが発生しなかった場合はmessageに"正常終了"を出力
         message.value += "正常終了\n\n";
     
         // evalの代わりにFunctionコンストラクタを使用
-        let func = new Function(JavaScriptCode);
-        func();
+        let func = new Function(JavaScriptCode + "return "+className+";");
+        const ClassFunc=func();
+        mainFunction=ClassFunc.main();
     
         // 変数を表で表示
         const table = document.getElementById('right');
@@ -190,10 +184,10 @@ runButton.addEventListener('click', function () {
         // エラーが発生した場合はエラーメッセージをmessageに出力
         message.value += e.message + "\n";
     }
-
-    message.value += "\n";
-
-    message.value += JavaScriptCode+"\n";
+    //JavaScriptCodeをコンソールに出力
+    console.log("==JavaScriptCode==");
+    console.log(JavaScriptCode);
+    console.log("====================================");
     
 
 });
@@ -333,3 +327,23 @@ function identifyToken(tmp_token){
 
     return tokenNum;
 }
+
+//ステップ実行のボタンが押されたときの処理
+let stepButton = document.getElementById('step');
+
+stepButton.addEventListener('click', function () {
+    // ジェネレータ関数の実行
+    if(mainFunction.next().done){
+        message.value += "プログラムが終了しました。\n";
+    }
+
+    // 変数を表で表示
+    const table = document.getElementById('right');
+    let tr = "<tr><th>型</th><th>変数名</th><th>値</th></tr>";
+
+    for (let i = 0; i < variables.length; i++) {
+        tr += "<tr><td>" + variables[i].Type + "</td><td>" + variables[i].Name + "</td><td>"+variables[i].Value+"</td></tr>";
+    }
+
+    table.innerHTML = tr;
+});
