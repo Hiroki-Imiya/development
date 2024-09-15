@@ -1,3 +1,5 @@
+/*入力されたプログラムの構文解析を行うJavaScript */
+
 //関数の引数かどうかのフラグ
 let functionFlag = false;
 
@@ -9,6 +11,9 @@ let arrayFlag = false;
 
 //プログラムのスコープを示す変数
 let scope ;
+
+//呼び出し部分がfor文の場合のフラグ
+let forFlag = false;
 
 //構文解析を行う関数
 function syntaxAnalysis(){
@@ -1012,15 +1017,13 @@ function ifStatement(){
 
     //JavaScriptに}を追加
     JavaScriptCode += "}";
-    index++;
-
     scope--;
 
     //elseがある間繰り返す
-    while(tokenNums[index].tokenNum==8){
+    while(tokenNums[index+1].tokenNum==8){
         //JavaScriptにelseを追加
         JavaScriptCode += "else ";
-        index++;
+        index=index+2;
         
         //ifの場合
         if(tokenNums[index].tokenNum==7){
@@ -1087,7 +1090,7 @@ function comparisonStatement(){
     }
 
     //JavaScriptに比較演算子を追加
-    JavaScriptCode += tokenNums[index].tokenValue+" ";
+    JavaScriptCode += tokenNums[index].tokenValue;
 
     //比較演算子が=の場合
     if(tokenNums[index].tokenNum==69){
@@ -1102,7 +1105,21 @@ function comparisonStatement(){
 
         //JavaScriptに=を追加
         JavaScriptCode += "=";
+    //大なりまたは小なりの場合
+    }else {
+        index++;
+
+        //イコールであればJavaScriptに=を追加
+        if(tokenNums[index].tokenNum==70){
+            JavaScriptCode += "=";
+        }else {
+            index--;
+        }
     }
+
+    //空白を追加
+    JavaScriptCode += " ";
+    
     index++;
 
     //識別子または整数でなければエラー
@@ -1206,16 +1223,11 @@ function whileStatement(){
 //for文の関数
 function forStatement(){
 
-    //JavaScriptにforを追加
-    JavaScriptCode += "for";
-
     //(でなければエラー
     if(tokenNums[index].tokenNum!=55){
         throw new Error("(がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
-    //JavaScriptに(を追加
-    JavaScriptCode += "(";
     index++;
 
     //型であれば変数宣言の関数へ
@@ -1229,13 +1241,19 @@ function forStatement(){
         identifierStatement();
     }
 
+    //;と改行を追加
+    JavaScriptCode += ";\n";
+
     //;でなければエラー
     if(tokenNums[index].tokenNum!=69){
-        throw new Error(";がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+        throw new Error("for文の;がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
-    //JavaScriptに;を追加
-    JavaScriptCode += ";";
+    //JavaScriptにyieldを追加
+    JavaScriptCode += "yield;\n\n";
+
+    //JavaScriptにfor( ;を追加
+    JavaScriptCode += "for( ;";
     index++;
 
     //比較文の関数
@@ -1250,16 +1268,20 @@ function forStatement(){
     JavaScriptCode += ";";
     index++;
 
+    //フラグを立てる
+    forFlag = true;
+
     //演算子の関数
-    operatorStatement();
+    operatorStatement(tokenNums[index].tokenValue);
+
+    //フラグを戻す
+    forFlag = false;
 
     //)でなければエラー
     if(tokenNums[index].tokenNum!=56){
         throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
-    //JavaScriptに)を追加
-    JavaScriptCode += ")";
     index++;
 
     //{でなければエラー
@@ -1268,8 +1290,10 @@ function forStatement(){
     }
     scope++;
 
-    //JavaScriptに{を追加
-    JavaScriptCode += "{\n";
+    //JavaScriptに;と改行を追加
+    JavaScriptCode += ";\n";
+    //JavaScriptにyieldを追加
+    JavaScriptCode += "yield;\n\n";
     index++;
 
     //}が来るまで繰り返す
@@ -1510,7 +1534,6 @@ function operatorStatement(identifier){
         JavaScriptCode += tokenNums[index].tokenValue;
         index++;
     }
-
     //(であれば関数呼び出しの関数
     if(tokenNums[index].tokenNum==55){
 
@@ -1545,8 +1568,14 @@ function operatorStatement(identifier){
 
     }
 
-    //;を追加
-    JavaScriptCode += ";\n";
+    //for文が呼び出し元の場合
+    if(forFlag){
+        //JavaScriptに){と改行を追加
+        JavaScriptCode += "){\n";
+    }else{
+        //JavaScriptに改行を追加
+        JavaScriptCode += ";\n";
+    }
 
     //JavaScriptに代入するコードを追加
     JavaScriptCode += "changeVariableValue(\""+identifier+"\","+identifier+")";

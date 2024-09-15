@@ -1,5 +1,4 @@
 //開発支援プログラムのメイン部分
-
 let compileButton = document.getElementById('compile');
 
 //現在読み込んでいる文字を保存する
@@ -157,6 +156,11 @@ compileButton.addEventListener('click', function () {
             token+=str;
         }
     }
+
+    //トークンをコンソールに出力
+    console.log("==トークン==");
+    console.log(tokenNums);
+    console.log("====================================");
 
     try {
         // 構文解析を行う(返り値はクラス名)
