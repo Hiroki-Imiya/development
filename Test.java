@@ -15,5 +15,8 @@ public class Test{
                 cnt++;
             }
         }
+        System.out.println(a);
     }
+
+    static int a=0;
 }

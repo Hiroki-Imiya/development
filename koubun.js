@@ -3,7 +3,7 @@
 //関数の引数かどうかのフラグ
 let functionFlag = false;
 
-//出てくる変数を格納する配列
+//出てくる変数をスコープごとに分けて格納する配列
 let variables = [];
 
 //配列かどうかのフラグ
@@ -16,6 +16,8 @@ let scope ;
 let forFlag = false;
 
 //構文解析を行う関数
+//引数：なし
+//返り値：クラス名
 function syntaxAnalysis(){
 
     scope = 0;
@@ -55,6 +57,8 @@ function syntaxAnalysis(){
 }
 
 //プログラムの関数
+//引数：クラス名
+//返り値：なし
 function program(className){
     //トークンによって処理を分岐
     switch (tokenNums[index].tokenNum){
@@ -74,6 +78,8 @@ function program(className){
 }
 
 //import文の関数
+//引数：なし
+//返り値：なし
 function importStatement(){
 
     //識別子でなければエラー
@@ -100,6 +106,8 @@ function importStatement(){
 }
 
 //クラス定義の関数
+//引数：クラス名
+//返り値：なし
 function classDefinition(className){
 
     //クラスでなければエラー
@@ -221,6 +229,8 @@ function classDefinition(className){
 }
 
 //型の関数
+//引数：なし
+//返り値：型
 function type(){
 
     //型を格納しておく変数
@@ -266,6 +276,8 @@ function type(){
 }
 
 //フィールド宣言(変数宣言)の関数
+//引数：なし
+//返り値：なし
 function fieldDeclaration(){
 
     //型の関数
@@ -277,7 +289,9 @@ function fieldDeclaration(){
     return variable_name;
 }
 
-//宣言子の並びの関数(引数は変数の型)
+//宣言子の並びの関数\
+//引数：型
+//返り値：変数名
 function declaratorList(variable_type){
 
     let variable_name;
@@ -863,6 +877,8 @@ function declaratorList(variable_type){
 }
 
 //関数宣言の関数
+//引数：なし
+//返り値：なし
 function functionDeclaration(){
 
     //{でなければエラー
@@ -903,12 +919,17 @@ function functionDeclaration(){
         }
     }
 
+    //Javascirptに現在のスコープの変数を削除する関数を追加
+    JavaScriptCode += "deleteVariable("+scope+");\n";
+    JavaScriptCode += "yield;\n";
     //JavaScriptに}を追加
     JavaScriptCode += "}\n";
     scope--;
 }
 
 //文の関数
+//引数：なし
+//返り値：なし
 function statement(){
 
     //トークンによって処理を分岐
@@ -970,6 +991,8 @@ function statement(){
 }
 
 //if文の関数
+//引数：なし
+//返り値：なし
 function ifStatement(){
 
     //ifをJavaScriptに追加
@@ -1003,7 +1026,8 @@ function ifStatement(){
 
     //JavaScriptに{を追加
     JavaScriptCode += "{\n";
-    index++;
+    index++
+    scope++;
 
     //文の関数
     statement();
@@ -1017,7 +1041,9 @@ function ifStatement(){
 
     //JavaScriptに}を追加
     JavaScriptCode += "}";
-    scope--;
+    //Javascirptに現在のスコープの変数を削除する関数を追加
+    JavaScriptCode += "deleteVariable("+scope+");\n";
+    JavaScriptCode += "yield;\n";
 
     //elseがある間繰り返す
     while(tokenNums[index+1].tokenNum==8){
@@ -1045,10 +1071,11 @@ function ifStatement(){
             if(tokenNums[index].tokenNum!=58){
                 throw new Error("}がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
-            scope--;
-
             //JavaScriptに}を追加
             JavaScriptCode += "}";
+            //Javascirptに現在のスコープの変数を削除する関数を追加
+            JavaScriptCode += "deleteVariable("+scope+");\n";
+            JavaScriptCode += "yield;\n";
             //index++;
         }
 
@@ -1064,6 +1091,8 @@ function ifStatement(){
 }
 
 //比較文の関数
+//引数：なし
+//返り値：なし
 function comparisonStatement(){
 
     //識別子でなければエラー
@@ -1165,6 +1194,8 @@ function comparisonStatement(){
 }
 
 //while文の関数
+//引数：なし
+//返り値：なし
 function whileStatement(){
 
     //JavaScriptにwhileを追加
@@ -1200,6 +1231,7 @@ function whileStatement(){
     //JavaScriptに{を追加
     JavaScriptCode += "{\n";
     index++;
+    scope++;
 
     //}が来るまで繰り返す
     while(tokenNums[index].tokenNum!=58){
@@ -1214,14 +1246,19 @@ function whileStatement(){
 
     }
 
-    scope--;
-
     //JavaScriptに}を追加
     JavaScriptCode += "}\n";
+    //Javascirptに現在のスコープの変数を削除する関数を追加
+    JavaScriptCode += "deleteVariable("+scope+");\n";
+    JavaScriptCode += "yield;\n";
 }
 
 //for文の関数
+//引数：なし
+//返り値：なし
 function forStatement(){
+
+    scope++;
 
     //(でなければエラー
     if(tokenNums[index].tokenNum!=55){
@@ -1288,8 +1325,6 @@ function forStatement(){
     if(tokenNums[index].tokenNum!=57){
         throw new Error("{がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
-    scope++;
-
     //JavaScriptに;と改行を追加
     JavaScriptCode += ";\n";
     //JavaScriptにyieldを追加
@@ -1310,11 +1345,15 @@ function forStatement(){
 
     //JavaScriptに}を追加
     JavaScriptCode += "}\n";
-
+    //Javascirptに現在のスコープの変数を削除する関数を追加
+    JavaScriptCode += "deleteVariable("+scope+");\n";
+    JavaScriptCode += "yield;\n";
     scope--;
 }
 
 //return文の関数
+//引数：なし
+//返り値：なし
 function returnStatement(){
 
     //returnをJavaScriptに追加
@@ -1332,6 +1371,8 @@ function returnStatement(){
 }
 
 //break文の関数
+//引数：なし
+//返り値：なし
 function breakStatement(){
 
     //breakをJavaScriptに追加
@@ -1351,6 +1392,8 @@ function breakStatement(){
 }
 
 //識別子の文の関数
+//引数：なし
+//返り値：なし
 function identifierStatement(){
 
     //.でない場合は前の識別子をJavaScriptに追加
@@ -1421,6 +1464,8 @@ function identifierStatement(){
 }
 
 //print文の関数
+//引数：なし
+//返り値：なし
 function printStatement(){
 
     //(でなければエラー
@@ -1449,6 +1494,8 @@ function printStatement(){
 }
 
 //println文の関数
+//引数：なし
+//返り値：なし
 function printlnStatement(){
 
     //JavaScriptにidがmessageの内容に加えるように追加
@@ -1488,6 +1535,8 @@ function printlnStatement(){
 }
 
 //printf文の関数
+//引数：なし
+//返り値：なし
 function printfStatement(){
 
     //(でなければエラー
@@ -1526,6 +1575,8 @@ function printfStatement(){
 }
 
 //演算子の関数
+//引数：なし
+//返り値：なし
 function operatorStatement(identifier){
 
     //識別子または整数であれば次のトークンへ
@@ -1583,6 +1634,8 @@ function operatorStatement(identifier){
 }
 
 //関数呼び出しの関数
+//引数：なし
+//返り値：なし
 function functionCallStatement(){
 
     //識別子または整数または文字列でなければエラー

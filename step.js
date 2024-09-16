@@ -19,3 +19,22 @@ function changeVariableValue(variableName, value){
         }
 	}
 }
+
+//ステップ実行の際にスコープの変更にともう変数を削除する関数
+//引数：スコープ
+//返り値：なし
+function deleteVariable(d_scope){
+	for(let i=0; i<variables.length; i++){
+		if(variables[i].Scope==d_scope){
+			variables.splice(i,1);
+			i--;
+		}
+	}
+}
+
+//ステップ実行の際に変数表の最後のスコープを取得する関数
+//引数：なし
+//返り値：スコープ
+function getScope(){
+	return variables[variables.length-1].Scope;
+}
