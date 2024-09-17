@@ -1022,7 +1022,6 @@ function ifStatement(){
     if(tokenNums[index].tokenNum!=57){
         throw new Error("{がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
-    scope++;
 
     //JavaScriptに{を追加
     JavaScriptCode += "{\n";
@@ -1038,12 +1037,12 @@ function ifStatement(){
     if(tokenNums[index].tokenNum!=58){
         throw new Error("}がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
-
-    //JavaScriptに}を追加
-    JavaScriptCode += "}";
     //Javascirptに現在のスコープの変数を削除する関数を追加
     JavaScriptCode += "deleteVariable("+scope+");\n";
     JavaScriptCode += "yield;\n";
+    //JavaScriptに}を追加
+    JavaScriptCode += "}";
+    scope--;
 
     //elseがある間繰り返す
     while(tokenNums[index+1].tokenNum==8){
@@ -1071,11 +1070,12 @@ function ifStatement(){
             if(tokenNums[index].tokenNum!=58){
                 throw new Error("}がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
-            //JavaScriptに}を追加
-            JavaScriptCode += "}";
             //Javascirptに現在のスコープの変数を削除する関数を追加
             JavaScriptCode += "deleteVariable("+scope+");\n";
             JavaScriptCode += "yield;\n";
+            //JavaScriptに}を追加
+            JavaScriptCode += "}";
+            scope--;
             //index++;
         }
 
@@ -1226,7 +1226,6 @@ function whileStatement(){
     if(tokenNums[index].tokenNum!=57){
         throw new Error("{がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
-    scope++;
 
     //JavaScriptに{を追加
     JavaScriptCode += "{\n";
@@ -1251,6 +1250,7 @@ function whileStatement(){
     //Javascirptに現在のスコープの変数を削除する関数を追加
     JavaScriptCode += "deleteVariable("+scope+");\n";
     JavaScriptCode += "yield;\n";
+    scope--;
 }
 
 //for文の関数
@@ -1522,8 +1522,9 @@ function printlnStatement(){
 
     //演算子があれば演算子の関数へ
     if(tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51 || tokenNums[index].tokenNum==52 || tokenNums[index].tokenNum==53 || tokenNums[index].tokenNum==54){
+        JavaScriptCode += tokenNums[index].tokenValue;
         index++;
-        operatorStatement();
+        operatorStatement(tokenNums[index].tokenValue);
     }
 
     //)でなければエラー
