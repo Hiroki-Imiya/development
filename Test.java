@@ -1,21 +1,16 @@
 import java.util.ArrayList;
 
 public class Test{
+
+    public static int tmp=0;
     public static void main(String[] args){
         int cnt=0;
         
-        while(cnt<10){
-            cnt=cnt+3;
-            cnt++;
+        if(cnt==0)
+        for(int i=0;i<10;i++){
+            System.out.println("Hello World");
         }
         
-        for(int i=0;i<cnt;i=i+2){
-            while(i+cnt<40){
-                System.out.println(i+cnt);
-                cnt++;
-            }
-        }
-        System.out.println(a);
     }
 
     static int a=0;

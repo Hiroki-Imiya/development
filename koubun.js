@@ -1018,32 +1018,44 @@ function ifStatement(){
     JavaScriptCode += ")";
     index++;
 
-    //{でなければエラー
+    //{がない場合は次の文の関数へ
     if(tokenNums[index].tokenNum!=57){
-        throw new Error("{がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+        //JavaScriptに{を追加
+        JavaScriptCode += "{\n";
+        scope++;
+        //文の関数
+        statement();
+        JavaScriptCode += "deleteVariable("+scope+");\n";
+        JavaScriptCode += "yield;\n";
+        //JavaScriptに}を追加
+        JavaScriptCode += "}";
+        scope--;
+    
+    //{がある場合
+    }else{
+        //JavaScriptに{を追加
+        JavaScriptCode += "{\n";
+        index++
+        scope++;
+
+        //文の関数
+        statement();
+
+        index++;
+
+        //}でなければエラー
+        if(tokenNums[index].tokenNum!=58){
+            throw new Error("}がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+        }
+        //Javascirptに現在のスコープの変数を削除する関数を追加
+        JavaScriptCode += "deleteVariable("+scope+");\n";
+        JavaScriptCode += "yield;\n";
+        //JavaScriptに}を追加
+        JavaScriptCode += "}";
+        scope--;
     }
-
-    //JavaScriptに{を追加
-    JavaScriptCode += "{\n";
-    index++
-    scope++;
-
-    //文の関数
-    statement();
-
-    index++;
-
-    //}でなければエラー
-    if(tokenNums[index].tokenNum!=58){
-        throw new Error("}がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-    }
-    //Javascirptに現在のスコープの変数を削除する関数を追加
-    JavaScriptCode += "deleteVariable("+scope+");\n";
-    JavaScriptCode += "yield;\n";
-    //JavaScriptに}を追加
-    JavaScriptCode += "}";
-    scope--;
-
+    
+    console.log(index);
     //elseがある間繰り返す
     while(tokenNums[index+1].tokenNum==8){
         //JavaScriptにelseを追加
@@ -1076,7 +1088,19 @@ function ifStatement(){
             //JavaScriptに}を追加
             JavaScriptCode += "}";
             scope--;
-            //index++;
+        
+        //{がない場合は次の文の関数へ
+        }else{
+            //JavaScriptに{を追加
+            JavaScriptCode += "{\n";
+            scope++;
+            //文の関数
+            statement();
+            JavaScriptCode += "deleteVariable("+scope+");\n";
+            JavaScriptCode += "yield;\n";
+            //JavaScriptに}を追加
+            JavaScriptCode += "}";
+            scope--;
         }
 
         //もし途中でindexがtokenNumsの長さを超えた場合はエラー
@@ -1114,7 +1138,7 @@ function comparisonStatement(){
     }
 
     //比較演算子でなければエラー
-    if(tokenNums[index].tokenNum!=61 && tokenNums[index].tokenNum!=62 && tokenNums[index].tokenNum!=69){
+    if(tokenNums[index].tokenNum!=61 && tokenNums[index].tokenNum!=62 && tokenNums[index].tokenNum!=70){
         throw new Error("比較演算子がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -1122,10 +1146,8 @@ function comparisonStatement(){
     JavaScriptCode += tokenNums[index].tokenValue;
 
     //比較演算子が=の場合
-    if(tokenNums[index].tokenNum==69){
+    if(tokenNums[index].tokenNum==70){
         
-        //JavaScriptに=を追加
-        JavaScriptCode += "=";
         index++;
         //=でなければエラー
         if(tokenNums[index].tokenNum!=70){

@@ -21,6 +21,8 @@ let mermaid_element = document.getElementById('mermaid_id');
 //ステップ実行をするための関数
 let mainFunction;
 
+//ラインを引くための変数
+let marker;
 
 //実行ボタンが押されたときの処理
 compileButton.addEventListener('click', function () {
@@ -346,6 +348,8 @@ stepButton.addEventListener('click', function () {
         message.value += "プログラムが終了しました。\n";
     }
 
+    changeColor(2);
+
     // 変数を表で表示
     const table = document.getElementById('right');
     let tr = "<tr><th>型</th><th>変数名</th><th>値</th><th>スコープ</th></tr>";
@@ -354,5 +358,21 @@ stepButton.addEventListener('click', function () {
         tr += "<tr><td>" + variables[i].Type + "</td><td>" + variables[i].Name + "</td><td>"+variables[i].Value+"</td><td>"+variables[i].Scope+"</td></tr>";
     }
 
+
     table.innerHTML = tr;
 });
+
+//AceEditorの指定した行の色をCSSのace_active_lineで指定した色に変更する関数
+function changeColor(lineNo){
+
+    //markerが存在する場合は削除
+    if(marker){
+        editor.getSession().removeMarker(marker);
+    }
+
+    // Rangeクラスを使用して範囲を作成
+    const Range = ace.require("ace/range").Range;
+    const range = new Range(lineNo-1, 0, lineNo, 0);
+	marker = editor.getSession().addMarker(range,"ace_active_line","background");
+	editor.scrollToLine(lineNo, true, true);
+}
