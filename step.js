@@ -33,3 +33,27 @@ function deleteVariable(d_scope){
 		}
 	}
 }
+
+//ステップ実行の際に元のコードの行を保存する関数
+//引数：なし
+//返り値：行数
+function saveLine(){
+	return editor.getSelectionRange().start.row+1;
+}
+
+//AceEditorの指定した行の色をCSSのace_active_lineで指定した色に変更する関数
+//引数：マークする行
+//返り値：なし
+function changeColor(lineNo){
+
+    //markerが存在する場合は削除
+    if(marker){
+        editor.getSession().removeMarker(marker);
+    }
+
+    // Rangeクラスを使用して範囲を作成
+    const Range = ace.require("ace/range").Range;
+    const range = new Range(lineNo-1, 0, lineNo, 0);
+	marker = editor.getSession().addMarker(range,"ace_active_line","background");
+	editor.scrollToLine(lineNo, true, true);
+}

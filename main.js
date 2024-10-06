@@ -8,6 +8,10 @@ let token="";
 const message = document.getElementById('message');
 
 //トークン番号を格納する配列
+//↓構成内容
+//tokenNum:トークン番号
+//tokenValue:トークンの内容
+//row:行数
 let tokenNums = [];
 //構文解析の際に使用する添字
 let index=0;
@@ -361,18 +365,3 @@ stepButton.addEventListener('click', function () {
 
     table.innerHTML = tr;
 });
-
-//AceEditorの指定した行の色をCSSのace_active_lineで指定した色に変更する関数
-function changeColor(lineNo){
-
-    //markerが存在する場合は削除
-    if(marker){
-        editor.getSession().removeMarker(marker);
-    }
-
-    // Rangeクラスを使用して範囲を作成
-    const Range = ace.require("ace/range").Range;
-    const range = new Range(lineNo-1, 0, lineNo, 0);
-	marker = editor.getSession().addMarker(range,"ace_active_line","background");
-	editor.scrollToLine(lineNo, true, true);
-}
