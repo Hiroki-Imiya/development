@@ -95,7 +95,7 @@ compileButton.addEventListener('click', function () {
                 let tmp_tokens={
                     tokenNum:41,
                     tokenValue:token,
-                    column:row
+                    row:row
                 }
                 tokenNums.push(tmp_tokens);
                 token="";
@@ -122,7 +122,7 @@ compileButton.addEventListener('click', function () {
                         let tmp_tokens={
                             tokenNum:tmp,
                             tokenValue:token,
-                            column:row
+                            row:row
                         }
                         tokenNums.push(tmp_tokens);
                         token=""
@@ -134,7 +134,7 @@ compileButton.addEventListener('click', function () {
                     let tmp_tokens={
                         tokenNum:tmp,
                         tokenValue:token,
-                        column:row
+                        row:row
                     }
                     tokenNums.push(tmp_tokens);
                     token=""
@@ -153,7 +153,7 @@ compileButton.addEventListener('click', function () {
                 let tmp_tokens={
                     tokenNum:tmp,
                     tokenValue:str,
-                    column:row
+                    row:row
                 }
                 tokenNums.push(tmp_tokens);
             }
@@ -350,9 +350,12 @@ stepButton.addEventListener('click', function () {
     // ジェネレータ関数の実行
     if(mainFunction.next().done){
         message.value += "プログラムが終了しました。\n";
+        //マーカーを削除
+        editor.getSession().removeMarker(marker);
+        return;
     }
 
-    changeColor(2);
+    changeColor(currentRow);
 
     // 変数を表で表示
     const table = document.getElementById('right');

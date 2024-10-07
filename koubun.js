@@ -15,6 +15,12 @@ let scope ;
 //呼び出し部分がfor文の場合のフラグ
 let forFlag = false;
 
+//ステップ実行の際に現在実行している行数を格納する変数
+let currentRow = 0;
+
+//呼び出し元がクラスのフィールド宣言かどうかのフラグ
+let classFieldFlag = false;
+
 //構文解析を行う関数
 //引数：なし
 //返り値：クラス名
@@ -139,6 +145,8 @@ function classDefinition(className){
     JavaScriptCode += "{\n";
     index++;
 
+    let variable_type;
+
     //}が来るまで繰り返す
     while(tokenNums[index].tokenNum!=58){
         //アクセス修飾子がある場合次のトークンへ
@@ -158,24 +166,40 @@ function classDefinition(className){
 
         //型であれば型の関数へ
         }else{
+
+            //2個先のトークンが(でなれけばフィールド宣言なのでフラグを立てる
+            if(tokenNums[index+2].tokenNum!=55){
+                classFieldFlag = true;
+            }
+
             //型の関数
-            type();
+            variable_type=type();
+
         }
+
+        let tmp_JavaScriptCode="";
 
         //識別子でなければエラー
         if(tokenNums[index].tokenNum!=1){
             throw new Error("関数名がありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
         }
 
-        //JavaScriptに関数名ジェネレータ関数として追加
-        JavaScriptCode += "*"+tokenNums[index].tokenValue+" ";        
+        //識別子がmainの場合はジェネレーター関数としてJavaScriptに追加
+        if(tokenNums[index].tokenValue=="main"){
+            JavaScriptCode += "*";
+        }
+        //JavaScriptに関数名を追加
+        tmp_JavaScriptCode += tokenNums[index].tokenValue+" ";
         //関数名を配列に格納
         className.push(tokenNums[index].tokenValue);
         index++;
 
-        //(でなければフィールド宣言の関数へ
+        //(でなければフィールド宣言として宣言子の並びへ
         if(tokenNums[index].tokenNum!=55){
-            fieldDeclaration();
+            index--;
+            declaratorList(variable_type);
+
+            classFieldFlag = false;
 
             //;でなければエラー
             if(tokenNums[index].tokenNum!=69){
@@ -183,8 +207,13 @@ function classDefinition(className){
             }
             index++;
 
+            //JavaScriptに;を追加
+            JavaScriptCode += ";\n";
+
         //(であれば次のトークンへ
         }else {
+
+            JavaScriptCode +=tmp_JavaScriptCode;
 
             scope++;
 
@@ -197,25 +226,27 @@ function classDefinition(className){
             fieldDeclaration();
 
             functionFlag = false;
-        }
 
-        //)でなければエラー
-        if(tokenNums[index].tokenNum!=56){
-            throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-        }
+            //)でなければエラー
+            if(tokenNums[index].tokenNum!=56){
+                throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+            }
 
-        //JavaScriptに)を追加
-        JavaScriptCode += ")";
-        index++;
-
-        //;でなければ関数宣言の関数へ
-        if(tokenNums[index].tokenNum!=69){
-            functionDeclaration();
+            //JavaScriptに)を追加
+            JavaScriptCode += ")";
             index++;
-        }else {
-            //;であれば関数定義として次のトークンへ
-            index++;
+
+            //;でなければ関数宣言の関数へ
+            if(tokenNums[index].tokenNum!=69){
+                functionDeclaration();
+                index++;
+            }else {
+                //;であれば関数定義として次のトークンへ
+                index++;
+            }
         }
+
+        
 
         //もし途中でindexがtokenNumsの長さを超えた場合はエラー
         if(index>=tokenNums.length){
@@ -243,8 +274,8 @@ function type(){
     //型を格納
     variable_type=tokenNums[index].tokenNum;
 
-    //関数の引数でない場合に型をJavaScriptに追加
-    if(!functionFlag){
+    //関数の引数かつフィールド宣言でない場合に型をJavaScriptに追加
+    if(!functionFlag  && !classFieldFlag){
         JavaScriptCode += "let ";
     }
     index++;
@@ -887,6 +918,9 @@ function functionDeclaration(){
     }
     //JavaScriptに{を追加
     JavaScriptCode += "{\n";
+    //Javascriptに現在の行数を格納する関数を追加
+    JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
+    JavaScriptCode += "yield;\n";
     index++;
 
     //}が来るまで繰り返す
@@ -902,6 +936,9 @@ function functionDeclaration(){
 
             //JavaScriptに;を追加
             JavaScriptCode += ";\n";
+
+            //JavaScriptに現在の行数を格納する関数を追加
+            JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
 
             //ステップ実行のためのコード
             JavaScriptCode += "yield;\n";
@@ -981,6 +1018,9 @@ function statement(){
             //JavaScriptに改行を追加
             JavaScriptCode += "message.value+=\"\\n\";\n";
 
+            //JavaScriptに現在の行数を格納する関数を追加
+            JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
+
             //ステップ実行のためのコード
             JavaScriptCode += "yield;\n";
             break;
@@ -1025,7 +1065,12 @@ function ifStatement(){
         scope++;
         //文の関数
         statement();
+        //Javascirptに現在のスコープの変数を削除する関数を追加
         JavaScriptCode += "deleteVariable("+scope+");\n";
+
+        //Javascriptに現在の行数を格納する関数を追加
+        JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
+
         JavaScriptCode += "yield;\n";
         //JavaScriptに}を追加
         JavaScriptCode += "}";
@@ -1049,6 +1094,10 @@ function ifStatement(){
         }
         //Javascirptに現在のスコープの変数を削除する関数を追加
         JavaScriptCode += "deleteVariable("+scope+");\n";
+
+        //Javascriptに現在の行数を格納する関数を追加
+        JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
+
         JavaScriptCode += "yield;\n";
         //JavaScriptに}を追加
         JavaScriptCode += "}";
@@ -1084,6 +1133,10 @@ function ifStatement(){
             }
             //Javascirptに現在のスコープの変数を削除する関数を追加
             JavaScriptCode += "deleteVariable("+scope+");\n";
+
+            //Javascriptに現在の行数を格納する関数を追加
+            JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
+
             JavaScriptCode += "yield;\n";
             //JavaScriptに}を追加
             JavaScriptCode += "}";
@@ -1096,7 +1149,12 @@ function ifStatement(){
             scope++;
             //文の関数
             statement();
+            //Javascirptに現在のスコープの変数を削除する関数を追加
             JavaScriptCode += "deleteVariable("+scope+");\n";
+
+            //Javascriptに現在の行数を格納する関数を追加
+            JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
+
             JavaScriptCode += "yield;\n";
             //JavaScriptに}を追加
             JavaScriptCode += "}";
@@ -1258,6 +1316,10 @@ function whileStatement(){
     while(tokenNums[index].tokenNum!=58){
         //文の関数
         statement();
+        //Javascriptに現在の行数を格納する関数を追加
+        JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
+        //Javascriptにyieldを追加
+        JavaScriptCode += "yield;\n";
         index++;
 
         //もし途中でindexがtokenNumsの長さを超えた場合はエラー
@@ -1271,6 +1333,10 @@ function whileStatement(){
     JavaScriptCode += "}\n";
     //Javascirptに現在のスコープの変数を削除する関数を追加
     JavaScriptCode += "deleteVariable("+scope+");\n";
+
+    //Javascriptに現在の行数を格納する関数を追加
+    JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
+
     JavaScriptCode += "yield;\n";
     scope--;
 }
@@ -1307,6 +1373,9 @@ function forStatement(){
     if(tokenNums[index].tokenNum!=69){
         throw new Error("for文の;がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
+
+    //Javascriptに現在の行数を格納する関数を追加
+    JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
 
     //JavaScriptにyieldを追加
     JavaScriptCode += "yield;\n\n";
@@ -1349,6 +1418,8 @@ function forStatement(){
     }
     //JavaScriptに;と改行を追加
     JavaScriptCode += ";\n";
+    //Javascriptに現在の行数を格納する関数を追加
+    JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
     //JavaScriptにyieldを追加
     JavaScriptCode += "yield;\n\n";
     index++;
@@ -1357,6 +1428,10 @@ function forStatement(){
     while(tokenNums[index].tokenNum!=58){
         //文の関数
         statement();
+        //Javascriptに現在の行数を格納する関数を追加
+        JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
+        //Javascriptにyieldを追加
+        JavaScriptCode += "yield;\n";
         index++;
 
         //もし途中でindexがtokenNumsの長さを超えた場合はエラー
@@ -1369,6 +1444,10 @@ function forStatement(){
     JavaScriptCode += "}\n";
     //Javascirptに現在のスコープの変数を削除する関数を追加
     JavaScriptCode += "deleteVariable("+scope+");\n";
+
+    //Javascriptに現在の行数を格納する関数を追加
+    JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
+
     JavaScriptCode += "yield;\n";
     scope--;
 }

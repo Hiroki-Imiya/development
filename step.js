@@ -34,11 +34,12 @@ function deleteVariable(d_scope){
 	}
 }
 
-//ステップ実行の際に元のコードの行を保存する関数
-//引数：なし
-//返り値：行数
-function saveLine(){
-	return editor.getSelectionRange().start.row+1;
+//ステップ実行の際に現在実行している行を更新する関数
+//引数：行数
+//返り値：なし
+function saveLine(line){
+	currentRow=line;
+	return ;
 }
 
 //AceEditorの指定した行の色をCSSのace_active_lineで指定した色に変更する関数
