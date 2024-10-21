@@ -21,6 +21,9 @@ let currentRow = 0;
 //呼び出し元がクラスのフィールド宣言かどうかのフラグ
 let classFieldFlag = false;
 
+//フィールド値の識別子を格納する配列
+let fieldIdentifiers = [];
+
 //構文解析を行う関数
 //引数：なし
 //返り値：クラス名
@@ -334,6 +337,9 @@ function declaratorList(variable_type){
 
     //JavaScriptに識別子を追加
     JavaScriptCode += tokenNums[index].tokenValue+" ";
+
+    //フィールド宣言のときに呼び出されていれば変数名を格納
+    fieldIdentifiers.push(tokenNums[index].tokenValue);
 
     //変数名を格納
     variable_name = tokenNums[index].tokenValue;
@@ -1499,7 +1505,18 @@ function identifierStatement(){
 
     //.でない場合は前の識別子をJavaScriptに追加
     if(tokenNums[index].tokenNum!=64){
-        JavaScriptCode += tokenNums[index-1].tokenValue;
+        //そのときに識別子がフィールド値の場合はthis.を付けて追加
+        for(let i=0;i<fieldIdentifiers.length;i++){
+            if(fieldIdentifiers[i]==tokenNums[index-1].tokenValue){
+                JavaScriptCode += "this."+tokenNums[index-1].tokenValue;
+                break;
+            }
+
+            //最後まで探してなければそのまま追加
+            if(i==fieldIdentifiers.length-1){
+                JavaScriptCode += tokenNums[index-1].tokenValue;
+            }
+        }
     }
 
     //.がある間繰り返す
