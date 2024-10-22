@@ -24,6 +24,12 @@ let classFieldFlag = false;
 //フィールド値の識別子を格納する配列
 let fieldIdentifiers = [];
 
+//フィールド宣言の変数表への文を一時的に格納する変数
+let fieldDeclarationCode = "";
+
+//登場したクラス名またはメソッド名を格納する配列
+let className = [];
+
 //構文解析を行う関数
 //引数：なし
 //返り値：クラス名
@@ -33,15 +39,17 @@ function syntaxAnalysis(){
 
     //出てくる変数を格納する配列を初期化
     variables = [];
-    //登場したクラス名またはメソッド名を格納する配列
-    let className = [];
+    
     //トークンの数だけ繰り返す
     index=0;
     while(index<tokenNums.length){
         //プログラムの関数
-        program(className);
+        program();
         index++;
     }
+
+    //fieldDeclarationCodeにフィールド宣言のコードを格納
+    JavaScriptCode += fieldDeclarationCode;
 
     //mermaidの内容を読み込む
     let classDirgram='classDiagram \n';
@@ -68,7 +76,7 @@ function syntaxAnalysis(){
 //プログラムの関数
 //引数：クラス名
 //返り値：なし
-function program(className){
+function program(){
     //トークンによって処理を分岐
     switch (tokenNums[index].tokenNum){
         //importの場合
@@ -190,6 +198,11 @@ function classDefinition(className){
         //識別子がmainの場合はジェネレーター関数としてJavaScriptに追加
         if(tokenNums[index].tokenValue=="main"){
             JavaScriptCode += "*";
+        }
+
+        //フィールドの場合は変数名を格納
+        if(classFieldFlag){
+            fieldIdentifiers.push(tokenNums[index].tokenValue);
         }
         //JavaScriptに関数名を追加
         tmp_JavaScriptCode += tokenNums[index].tokenValue+" ";
@@ -601,29 +614,53 @@ function declaratorList(variable_type){
             throw new Error("型がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
         }
 
-        //javascriptに;を追加
-        JavaScriptCode += ";\n";
+        //javascriptに;を追加(フィールド宣言の場合は追加しない)
+        if(!classFieldFlag){
+            JavaScriptCode += ";\n";
+        }
+
 
         //変数を配列に格納するためにオブジェクトを作成(変数の型は番号から文字へ)
         if(variable_type==25){
             //配列の場合
             if(arrayFlag){
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"int[]\",[],"+scope+");\n";
+                //フィールドの場合
+                if(classFieldFlag){
+                    fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"int[]\",[],"+scope+");\n";
+                }else {
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"int[]\",[],"+scope+");\n";
+                }
 
                 //フラグを戻す
                 arrayFlag = false;
             }else {
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"int\",0,"+scope+");\n";
+                //フィールドの場合
+                if(classFieldFlag){
+                    fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"int\",0,"+scope+");\n";
+                }else {
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"int\",0,"+scope+");\n";
+                }
             }
         }else if(variable_type==26){
             //配列の場合
             if(arrayFlag){
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte[]\",[],"+scope+");\n";
+                //フィールドの場合
+                if(classFieldFlag){
+                    fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"byte[]\",[],"+scope+");\n";
+
+                }else {
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte[]\",[],"+scope+");\n";
+                }
 
                 //フラグを戻す
                 arrayFlag = false;
             }else {
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte\",0,"+scope+");\n";
+                //フィールドの場合
+                if(classFieldFlag){
+                    fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"byte\",0,"+scope+");\n";
+                }else {
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte\",0,"+scope+");\n";
+                }
             }
         }else if(variable_type==27){
             let variable = {
@@ -658,12 +695,22 @@ function declaratorList(variable_type){
         }else if(variable_type==30){
             //配列の場合
             if(arrayFlag){
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"double[]\",[],"+scope+");\n";
+                //フィールドの場合
+                if(classFieldFlag){
+                    fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"double[]\",[],"+scope+");\n";
+                }else {
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"double[]\",[],"+scope+");\n";
+                }
 
                 //フラグを戻す
                 arrayFlag = false;
             }else {
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"double\",0.0,"+scope+");\n";
+                //フィールドの場合
+                if(classFieldFlag){
+                    fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"double\",0.0,"+scope+");\n";
+                }else {
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"double\",0.0,"+scope+");\n";
+                }
             }
         }else if(variable_type==31){
             let variable = {
@@ -680,12 +727,22 @@ function declaratorList(variable_type){
         }else if(variable_type==33){
             //配列の場合
             if(arrayFlag){
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"String[]\",[],"+scope+");\n";
+                //フィールドの場合
+                if(classFieldFlag){
+                    fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"String[]\",[],"+scope+");\n";
+                }else {
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"String[]\",[],"+scope+");\n";
+                }
 
                 //フラグを戻す
                 arrayFlag = false;
             }else {
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"String\",\"\","+scope+");\n";
+                //フィールドの場合
+                if(classFieldFlag){
+                    fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"String\",\"\","+scope+");\n";
+                }else {
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"String\",\"\","+scope+");\n";
+                }
             }
         }else if(variable_type==34){
             let variable = {
@@ -700,35 +757,63 @@ function declaratorList(variable_type){
         }
     
 
-        //JavaScriptに変数の代入をする文を追加
-        JavaScriptCode += "changeVariableValue(\""+variable_name+"\","+variable_name+")";
+        //フィールド宣言の場合はフィールド宣言のコードを追加
+        if(classFieldFlag){
+            fieldDeclarationCode += "changeVariableValue(\""+variable_name+"\","+className[0]+"."+variable_name+");";
+        }else{
+            //JavaScriptに変数の代入をする文を追加
+            JavaScriptCode += "changeVariableValue(\""+variable_name+"\","+variable_name+")";
+        }
 
     }else {
         //関数の引数でなければ変数
         if(!functionFlag){
-            //javascriptに;を追加
-            JavaScriptCode += ";\n";
+            //javascriptに;を追加(フィールド宣言の場合は追加しない)
+            if(!classFieldFlag){
+                JavaScriptCode += ";\n";
+            }
 
             //変数を配列に格納するためにオブジェクトを作成(変数の型は番号から文字へ)
             if(variable_type==25){
                 //配列の場合
                 if(arrayFlag){
-                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"int[]\",[],"+scope+");\n";
+                    //フィールドの場合
+                    if(classFieldFlag){
+                        fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"int[]\",[],"+scope+");\n";
+                    }else {
+                        JavaScriptCode += "addVariable(\""+variable_name+"\",\"int[]\",[],"+scope+");\n";
+                    }
 
                     //フラグを戻す
                     arrayFlag = false;
                 }else {
-                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"int\",0,"+scope+");\n";
+                    //フィールドの場合
+                    if(classFieldFlag){
+                        fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"int\",0,"+scope+");\n";
+                    }else {
+                        JavaScriptCode += "addVariable(\""+variable_name+"\",\"int\",0,"+scope+");\n";
+                    }
                 }
             }else if(variable_type==26){
                 //配列の場合
                 if(arrayFlag){
-                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte[]\",[],"+scope+");\n";
+                    //フィールドの場合
+                    if(classFieldFlag){
+                        fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"byte[]\",[],"+scope+");\n";
+
+                    }else {
+                        JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte[]\",[],"+scope+");\n";
+                    }
 
                     //フラグを戻す
                     arrayFlag = false;
                 }else {
-                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte\",0,"+scope+");\n";
+                    //フィールドの場合
+                    if(classFieldFlag){
+                        fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"byte\",0,"+scope+");\n";
+                    }else {
+                        JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte\",0,"+scope+");\n";
+                    }
                 }
             }else if(variable_type==27){
                 let variable = {
@@ -763,12 +848,22 @@ function declaratorList(variable_type){
             }else if(variable_type==30){
                 //配列の場合
                 if(arrayFlag){
-                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"double[]\",[],"+scope+");\n";
+                    //フィールドの場合
+                    if(classFieldFlag){
+                        fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"double[]\",[],"+scope+");\n";
+                    }else {
+                        JavaScriptCode += "addVariable(\""+variable_name+"\",\"double[]\",[],"+scope+");\n";
+                    }
 
                     //フラグを戻す
                     arrayFlag = false;
                 }else {
-                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"double\",0.0,"+scope+");\n";
+                    //フィールドの場合
+                    if(classFieldFlag){
+                        fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"double\",0.0,"+scope+");\n";
+                    }else {
+                        JavaScriptCode += "addVariable(\""+variable_name+"\",\"double\",0.0,"+scope+");\n";
+                    }
                 }
             }else if(variable_type==31){
                 let variable = {
@@ -785,12 +880,22 @@ function declaratorList(variable_type){
             }else if(variable_type==33){
                 //配列の場合
                 if(arrayFlag){
-                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"String[]\",[],"+scope+");\n";
+                    //フィールドの場合
+                    if(classFieldFlag){
+                        fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"String[]\",[],"+scope+");\n";
+                    }else {
+                        JavaScriptCode += "addVariable(\""+variable_name+"\",\"String[]\",[],"+scope+");\n";
+                    }
 
                     //フラグを戻す
                     arrayFlag = false;
                 }else {
-                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"String\",\"\","+scope+");\n";
+                    //フィールドの場合
+                    if(classFieldFlag){
+                        fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"String\",\"\","+scope+");\n";
+                    }else {
+                        JavaScriptCode += "addVariable(\""+variable_name+"\",\"String\",\"\","+scope+");\n";
+                    }
                 }
             }else if(variable_type==34){
                 let variable = {
@@ -1628,9 +1733,20 @@ function printlnStatement(){
     //識別子または文字列であれば次のトークンへ
     if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==37){
         //JavaScriptに識別子または文字列を追加
-        //識別子の場合はそのまま追加
+        //識別子の場合
         if(tokenNums[index].tokenNum==1){
-            JavaScriptCode += tokenNums[index].tokenValue;
+            //フィールド値の場合はthis.を付けて追加
+            for(let i=0;i<fieldIdentifiers.length;i++){
+                if(fieldIdentifiers[i]==tokenNums[index].tokenValue){
+                    JavaScriptCode += "this."+tokenNums[index].tokenValue;
+                    break;
+                }
+
+                //最後まで探してなければそのまま追加
+                if(i==fieldIdentifiers.length-1){
+                    JavaScriptCode += "\""+tokenNums[index].tokenValue+"\"";
+                }
+            }
         //文字列の場合は""を追加
         }else{
             JavaScriptCode += "\""+tokenNums[index].tokenValue+"\"";

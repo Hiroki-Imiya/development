@@ -194,6 +194,8 @@ compileButton.addEventListener('click', function () {
         }
     
         table.innerHTML = tr;
+
+
     
     } catch (e) {
         // エラーが発生した場合はエラーメッセージをmessageに出力

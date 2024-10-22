@@ -19,7 +19,7 @@
 	}
 	}*/
 
-	let JavaScriptCode = "class Test {\n";
+	/*let JavaScriptCode = "class Test {\n";
 	JavaScriptCode += "\tstatic *main (args ){\n";
 	JavaScriptCode += "\tlet a =0;\n";
 	JavaScriptCode += "\tyield;\n";
@@ -50,4 +50,20 @@
 	run.addEventListener('click',function(){
 		//ジェネレータ関数の実行
 		gen.next();
-	});
+	});*/
+
+	class Test{
+		static a=1;
+
+		static main(){
+			let g=0;
+			console.log(this.a);
+			console.log(g);
+			console.log(Test.tmp);
+		}
+
+		static tmp=40;
+	}
+
+
+	Test.main();
