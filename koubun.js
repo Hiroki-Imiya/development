@@ -35,10 +35,35 @@ let className = [];
 //返り値：クラス名
 function syntaxAnalysis(){
 
+    //スコープを初期化
     scope = 0;
 
     //出てくる変数を格納する配列を初期化
     variables = [];
+
+    //配列かどうかのフラグを初期化
+    arrayFlag = false;
+
+    //関数の引数かどうかのフラグを初期化
+    functionFlag = false;
+
+    //呼び出し部分がfor文の場合のフラグを初期化
+    forFlag = false;
+
+    //呼び出し元がクラスのフィールド宣言かどうかのフラグを初期化
+    classFieldFlag = false;
+
+    //フィールド値の識別子を格納する配列を初期化
+    fieldIdentifiers = [];
+
+    //フィールド宣言の変数表への文を一時的に格納する変数を初期化
+    fieldDeclarationCode = "";
+
+    //登場したクラス名またはメソッド名を格納する配列を初期化
+    className = [];
+
+    //JavaScriptのコードを格納する変数
+    JavaScriptCode = "";
     
     //トークンの数だけ繰り返す
     index=0;
@@ -56,6 +81,14 @@ function syntaxAnalysis(){
 
     //クラス図の作成(mermaid形式)
     classDirgram += 'class '+className[0] + ' {\n';
+
+    console.log(fieldIdentifiers);
+
+
+    //フィールド宣言の識別子を格納
+    for(let i=0;i<fieldIdentifiers.length;i++){
+        classDirgram += '+'+fieldIdentifiers[i] +'\n';
+    }
     for(let i=1;i<className.length;i++){
         classDirgram += '+'+className[i] +'()\n';
     }
@@ -203,11 +236,14 @@ function classDefinition(className){
         //フィールドの場合は変数名を格納
         if(classFieldFlag){
             fieldIdentifiers.push(tokenNums[index].tokenValue);
+
+        //関数の場合は関数名を格納
+        }else{
+            //JavaScriptに関数名を追加
+            tmp_JavaScriptCode += tokenNums[index].tokenValue+" ";
+            //関数名を配列に格納
+            className.push(tokenNums[index].tokenValue);
         }
-        //JavaScriptに関数名を追加
-        tmp_JavaScriptCode += tokenNums[index].tokenValue+" ";
-        //関数名を配列に格納
-        className.push(tokenNums[index].tokenValue);
         index++;
 
         //(でなければフィールド宣言として宣言子の並びへ
@@ -336,7 +372,7 @@ function fieldDeclaration(){
     return variable_name;
 }
 
-//宣言子の並びの関数\
+//宣言子の並びの関数
 //引数：型
 //返り値：変数名
 function declaratorList(variable_type){
@@ -351,8 +387,6 @@ function declaratorList(variable_type){
     //JavaScriptに識別子を追加
     JavaScriptCode += tokenNums[index].tokenValue+" ";
 
-    //フィールド宣言のときに呼び出されていれば変数名を格納
-    fieldIdentifiers.push(tokenNums[index].tokenValue);
 
     //変数名を格納
     variable_name = tokenNums[index].tokenValue;
