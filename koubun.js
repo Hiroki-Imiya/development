@@ -249,6 +249,9 @@ function classDefinition(){
 
         //JavaScriptに親クラス名を追加
         JavaScriptCode += tokenNums[index].tokenValue+" ";
+
+        //クラスの親子関係を示す配列に格納
+        classRelation.push({parent:tokenNums[index].tokenValue,child:classes[classIndex].className});
         index++;
     }
 
