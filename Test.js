@@ -52,6 +52,8 @@
 		gen.next();
 	});*/
 
+
+
 	class Test{
 		static a=1;
 
@@ -60,10 +62,27 @@
 			console.log(this.a);
 			console.log(g);
 			console.log(Test.tmp);
-		}
 
-		static tmp=40;
+			const tmpInstance=new tmp();
+			tmpInstance.tmp_method();
+		}
 	}
+
+	class tmp{
+		tmp_method(){
+			console.log("tmp_method");
+		}
+	}
+
+
+	//Testを継承したnewTestクラス
+	class newTest extends Test{
+		static main(){
+			super.main();
+			console.log("newTest");
+		}
+	}
+
 
 
 	Test.main();

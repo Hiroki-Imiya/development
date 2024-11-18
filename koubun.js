@@ -22,13 +22,35 @@ let currentRow = 0;
 let classFieldFlag = false;
 
 //フィールド値の識別子を格納する配列
+//所属しているクラス名:className
+//名前:filedName
 let fieldIdentifiers = [];
 
 //フィールド宣言の変数表への文を一時的に格納する変数
 let fieldDeclarationCode = "";
 
-//登場したクラス名またはメソッド名を格納する配列
-let className = [];
+//登場したクラス名を格納する配列
+//クラス名:className
+//main関数を持つかどうか:mainFlag
+let classes = [];
+
+//クラスの添字
+let classIndex = 0;
+
+//登場したメソッド名を保存する配列
+//所属しているクラス名:className
+//メソッド名:methodName
+let method = [];
+
+//クラスの親と子の関係を示す配列
+//親クラス名:parent
+//子クラス名:child
+let classRelation = [];
+
+//クラスの相互関係を示す配列
+//持っているクラス名:className
+//相互関係のクラス名:relation
+let mutualRelation = [];
 
 //構文解析を行う関数
 //引数：なし
@@ -59,11 +81,20 @@ function syntaxAnalysis(){
     //フィールド宣言の変数表への文を一時的に格納する変数を初期化
     fieldDeclarationCode = "";
 
-    //登場したクラス名またはメソッド名を格納する配列を初期化
-    className = [];
+    //登場したクラス名を格納する配列を初期化
+    classes = [];
+
+    //クラスの添字を初期化
+    classIndex = 0;
+
+    //登場したメソッド名を格納する配列を初期化
+    method = [];
 
     //JavaScriptのコードを格納する変数
     JavaScriptCode = "";
+
+    //mainを含むクラス名を格納する変数
+    let class_main;
     
     //トークンの数だけ繰り返す
     index=0;
@@ -77,32 +108,56 @@ function syntaxAnalysis(){
     JavaScriptCode += fieldDeclarationCode;
 
     //mermaidの内容を読み込む
-    let classDirgram='classDiagram \n';
+    let classDiagram='classDiagram \n';
 
     //クラス図の作成(mermaid形式)
-    classDirgram += 'class '+className[0] + ' {\n';
+    if(classes.length==0){
+        throw new Error("クラス名がありません");
+    }else{
+        for(let i=0;i<classes.length;i++){
+            classDiagram += 'class '+classes[i].className + ' {\n';
+            for(let j=0;j<fieldIdentifiers.length;j++){
+                if(fieldIdentifiers[j].className==classes[i].className){
+                    classDiagram += '+'+fieldIdentifiers[j].fieldName +'\n';
+                }
+            }
+            for(let j=0;j<method.length;j++){
+                //現在参照しているメソッドがクラスのメソッドであれば
+                if(method[j].className==classes[i].className){
+                    classDiagram += '+ '+method[j].methodName+'()\n';
+                }
+            }
+            classDiagram += '}\n';
+        }
+
+        //クラスの親子関係を示す矢印を追加
+        for(let i=0;i<classRelation.length;i++){
+            classDiagram += classRelation[i].parent + ' <|-- ' + classRelation[i].child + '\n';
+        }
+
+        //クラスの相互関係を示す矢印を追加
+        for(let i=0;i<mutualRelation.length;i++){
+            classDiagram += mutualRelation[i].className + ' -- ' + mutualRelation[i].relation + '\n';
+        }
+    }
 
     console.log(fieldIdentifiers);
 
-
-    //フィールド宣言の識別子を格納
-    for(let i=0;i<fieldIdentifiers.length;i++){
-        classDirgram += '+'+fieldIdentifiers[i] +'\n';
-    }
-    for(let i=1;i<className.length;i++){
-        classDirgram += '+'+className[i] +'()\n';
-    }
-
-    classDirgram += '}\n';
+    console.log(classDiagram);
 
     //mermaidの再描画
     mermaid_element.removeAttribute('data-processed');
-    mermaid_element.innerHTML = classDirgram;
+    mermaid_element.innerHTML = classDiagram;
     mermaid.init();
 
-    console.log(classDirgram);
+    //main関数のクラス名を取得
+    for(let i=0;i<classes.length;i++){
+        if(classes[i].mainFlag){
+            class_main = classes[i].className;
+        }
+    }
 
-    return className[0];
+    return class_main;
 
 }
 
@@ -122,7 +177,8 @@ function program(){
         case 15:
             index++;
             //クラス定義の関数
-            classDefinition(className);
+            classDefinition();
+            classIndex++;
             break;
     }
 }
@@ -158,7 +214,7 @@ function importStatement(){
 //クラス定義の関数
 //引数：クラス名
 //返り値：なし
-function classDefinition(className){
+function classDefinition(){
 
     //クラスでなければエラー
     if(tokenNums[index].tokenNum!=6){
@@ -177,8 +233,24 @@ function classDefinition(className){
     JavaScriptCode += tokenNums[index].tokenValue+" ";
 
     //クラス名を配列に格納
-    className.push(tokenNums[index].tokenValue);
+    classes.push({className:tokenNums[index].tokenValue,mainFlag:false});
     index++;
+
+    //extendsがある場合
+    if(tokenNums[index].tokenNum==22){
+        //JavaScriptにextendsを追加
+        JavaScriptCode += "extends ";
+        index++;
+
+        //識別子でなければエラー
+        if(tokenNums[index].tokenNum!=1){
+            throw new Error("extendsの後に識別子がありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
+        }
+
+        //JavaScriptに親クラス名を追加
+        JavaScriptCode += tokenNums[index].tokenValue+" ";
+        index++;
+    }
 
     //{でなければエラー
     if(tokenNums[index].tokenNum!=57){
@@ -228,21 +300,22 @@ function classDefinition(className){
             throw new Error("関数名がありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
         }
 
-        //識別子がmainの場合はジェネレーター関数としてJavaScriptに追加
-        if(tokenNums[index].tokenValue=="main"){
-            JavaScriptCode += "*";
-        }
-
         //フィールドの場合は変数名を格納
         if(classFieldFlag){
-            fieldIdentifiers.push(tokenNums[index].tokenValue);
+            fieldIdentifiers.push({className:classes[classIndex].className,fieldName:tokenNums[index].tokenValue});
 
         //関数の場合は関数名を格納
         }else{
+            //関数はジェネレーター関数として定義
+            JavaScriptCode += "*";
             //JavaScriptに関数名を追加
             tmp_JavaScriptCode += tokenNums[index].tokenValue+" ";
             //関数名を配列に格納
-            className.push(tokenNums[index].tokenValue);
+            method.push({className:classes[classIndex].className,methodName:tokenNums[index].tokenValue});
+            //main関数があるかどうかを確認
+            if(tokenNums[index].tokenValue=="main"){
+                classes[classIndex].mainFlag=true;
+            }
         }
         index++;
 
@@ -319,8 +392,23 @@ function type(){
     //型を格納しておく変数
     let variable_type;
 
+    //識別子の場合はクラス名かどうかを確認
+    if(tokenNums[index].tokenNum==1){
+        //クラスが登場していない場合はエラー
+        if(classes.length==0){
+            throw new Error("クラスがありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
+        }
+        //クラス名がない場合はエラー
+        for(let i=0;i<classes.length;i++){
+            if(tokenNums[index].tokenValue==classes[i].className){
+                break;
+            }else if(i==classes.length-1){
+                throw new Error("クラス名がありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
+            }
+        }
+
     //型でなければエラー
-    if(tokenNums[index].tokenNum!=25 && tokenNums[index].tokenNum!=26 && tokenNums[index].tokenNum!=27 && tokenNums[index].tokenNum!=28 && tokenNums[index].tokenNum!=29 && tokenNums[index].tokenNum!=30 && tokenNums[index].tokenNum!=31 && tokenNums[index].tokenNum!=32 && tokenNums[index].tokenNum!=33 && tokenNums[index].tokenNum!=34){
+    }else if(tokenNums[index].tokenNum!=25 && tokenNums[index].tokenNum!=26 && tokenNums[index].tokenNum!=27 && tokenNums[index].tokenNum!=28 && tokenNums[index].tokenNum!=29 && tokenNums[index].tokenNum!=30 && tokenNums[index].tokenNum!=31 && tokenNums[index].tokenNum!=32 && tokenNums[index].tokenNum!=33 && tokenNums[index].tokenNum!=34){
         throw new Error("型がありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
     //型を格納
@@ -643,6 +731,48 @@ function declaratorList(variable_type){
                 throw new Error("ArrayList型に)がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
+        //識別子の場合    
+        }else if(variable_type==1){
+            //newでなければエラー
+            if(tokenNums[index].tokenNum!=13){
+                throw new Error("クラス型にnewがありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+            }
+
+            //JavaScriptにnewを追加
+            JavaScriptCode += "new ";
+
+            index++;
+
+            //クラス名でなければエラー
+            if(tokenNums[index].tokenNum!=1){
+                throw new Error("クラス型にクラス名がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+            }
+
+            //クラス名がない場合はエラー
+            for(let i=0;i<classes.length;i++){
+                if(tokenNums[index].tokenValue==classes[i].className){
+                    break;
+                }else if(i==classes.length-1){
+                    throw new Error("クラス名がありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
+                }
+            }
+
+            //JavaScriptにクラス名を追加
+            JavaScriptCode += tokenNums[index].tokenValue;
+
+            index++;
+
+            //()があれば次のトークンへ
+            if(tokenNums[index].tokenNum==55){
+                index++;
+                if(tokenNums[index].tokenNum!=56){
+                    throw new Error("()で終わっていません"+tokenNums[index].tokenNum+"配列の添字:"+index);
+                }
+
+                //JavaScriptに()を追加
+                JavaScriptCode += "()";
+                index++;
+            }
 
         }else {
             throw new Error("型がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
@@ -793,7 +923,7 @@ function declaratorList(variable_type){
 
         //フィールド宣言の場合はフィールド宣言のコードを追加
         if(classFieldFlag){
-            fieldDeclarationCode += "changeVariableValue(\""+variable_name+"\","+className[0]+"."+variable_name+");";
+            fieldDeclarationCode += "changeVariableValue(\""+variable_name+"\","+classes[classIndex].className+"."+variable_name+");";
         }else{
             //JavaScriptに変数の代入をする文を追加
             JavaScriptCode += "changeVariableValue(\""+variable_name+"\","+variable_name+")";
@@ -1057,6 +1187,9 @@ function declaratorList(variable_type){
 //返り値：なし
 function functionDeclaration(){
 
+    //クラスの初期化のフラグ
+    let classInitFlag = false;
+
     //{でなければエラー
     if(tokenNums[index].tokenNum!=57){
         throw new Error("{がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
@@ -1071,8 +1204,26 @@ function functionDeclaration(){
     //}が来るまで繰り返す
     while(tokenNums[index].tokenNum!=58){
 
-        //型の場合は変数宣言の関数へ
-        if(tokenNums[index].tokenNum==25 || tokenNums[index].tokenNum==26 || tokenNums[index].tokenNum==27 || tokenNums[index].tokenNum==28 || tokenNums[index].tokenNum==29 || tokenNums[index].tokenNum==30 || tokenNums[index].tokenNum==31 || tokenNums[index].tokenNum==32 || tokenNums[index].tokenNum==33 || tokenNums[index].tokenNum==34){
+        //フラグを戻す
+        classInitFlag = false;
+
+        //識別子の場合はクラス名かどうかを確認
+        if(tokenNums[index].tokenNum==1){
+            for(let i=0;i<classes.length;i++){
+
+                //クラス名の場合はクラスの初期化のフラグを立てる
+                if(tokenNums[index].tokenValue==classes[i].className){
+                    classInitFlag = true;
+
+                    //相互関係の配列に追加
+                    mutualRelation.push({className:classes[classIndex].className,relation:tokenNums[index].tokenValue});
+                    break;
+                }
+            }
+        }
+
+        //型の場合またはクラスの初期化フラグが立っている場合は変数宣言の関数へ
+        if(tokenNums[index].tokenNum==25 || tokenNums[index].tokenNum==26 || tokenNums[index].tokenNum==27 || tokenNums[index].tokenNum==28 || tokenNums[index].tokenNum==29 || tokenNums[index].tokenNum==30 || tokenNums[index].tokenNum==31 || tokenNums[index].tokenNum==32 || tokenNums[index].tokenNum==33 || tokenNums[index].tokenNum==34 || classInitFlag){
             fieldDeclaration();
             //;でなければエラー
             if(tokenNums[index].tokenNum!=69){
@@ -1646,7 +1797,7 @@ function identifierStatement(){
     if(tokenNums[index].tokenNum!=64){
         //そのときに識別子がフィールド値の場合はthis.を付けて追加
         for(let i=0;i<fieldIdentifiers.length;i++){
-            if(fieldIdentifiers[i]==tokenNums[index-1].tokenValue){
+            if(fieldIdentifiers[i].fieldName==tokenNums[index-1].tokenValue){
                 JavaScriptCode += "this."+tokenNums[index-1].tokenValue;
                 break;
             }
@@ -1771,7 +1922,7 @@ function printlnStatement(){
         if(tokenNums[index].tokenNum==1){
             //フィールド値の場合はthis.を付けて追加
             for(let i=0;i<fieldIdentifiers.length;i++){
-                if(fieldIdentifiers[i]==tokenNums[index].tokenValue){
+                if(fieldIdentifiers[i].fieldName==tokenNums[index].tokenValue){
                     JavaScriptCode += "this."+tokenNums[index].tokenValue;
                     break;
                 }

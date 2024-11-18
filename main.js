@@ -253,6 +253,8 @@ function identifyToken(tmp_token){
         tokenNum=15;
     }else if(tmp_token=="static"){
         tokenNum=17;
+    }else if(tmp_token=="extends"){
+        tokenNum=22;
     }else if(tmp_token=="int"){
         tokenNum=25;
     }else if(tmp_token=="byte"){
