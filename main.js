@@ -359,6 +359,12 @@ stepButton.addEventListener('click', function () {
         return;
     }
 
+    update();
+});
+
+//ジェネレーター関数でマーカーや表を更新する関数
+function update(){
+    //マーカーの更新
     changeColor(currentRow);
 
     // 変数を表で表示
@@ -371,4 +377,4 @@ stepButton.addEventListener('click', function () {
 
 
     table.innerHTML = tr;
-});
+}

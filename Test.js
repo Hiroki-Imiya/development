@@ -86,3 +86,4 @@
 
 
 	Test.main();
+	newTest.main();
