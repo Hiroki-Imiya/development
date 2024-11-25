@@ -221,7 +221,7 @@ function syntaxAnalysis(){
 
         //クラスの相互関係を示す矢印を追加
         for(let i=0;i<mutualRelation.length;i++){
-            classDiagram += mutualRelation[i].className + ' -- ' + mutualRelation[i].relation + '\n';
+            classDiagram += mutualRelation[i].className + ' ..> ' + mutualRelation[i].relation + ':«instantiate»\n';
         }
     }
 
