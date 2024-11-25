@@ -57,6 +57,8 @@
 	class Test{
 		static a=1;
 
+		ta=4;
+
 		static main(){
 			let g=0;
 			console.log(this.a);
@@ -83,7 +85,11 @@
 		}
 	}
 
-
-
+	let tre=new Test();
+	console.log("ts"+tre.ta);
 	Test.main();
 	newTest.main();
+
+	for(let i=0;i<0;i++){
+		console.log("for");
+	}

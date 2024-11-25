@@ -12,6 +12,9 @@ let arrayFlag = false;
 //プログラムのスコープを示す変数
 let scope ;
 
+//いままで出てきたスコープの最大値
+let maxScope = 0;
+
 //呼び出し部分がfor文の場合のフラグ
 let forFlag = false;
 
@@ -21,9 +24,22 @@ let currentRow = 0;
 //呼び出し元がクラスのフィールド宣言かどうかのフラグ
 let classFieldFlag = false;
 
+//フィールド値やメソッドpublicかどうかのフラグ
+//publicの場合はtrue
+//privateの場合はfalse
+let publicFlag = false;
+
+//フィールド値やメソッドが静的かどうかのフラグ
+//静的の場合はtrue
+//静的でない場合はfalse
+let staticFlag = false;
+
 //フィールド値の識別子を格納する配列
 //所属しているクラス名:className
 //名前:filedName
+//型:type
+//アクセス修飾子:access
+//静的かどうか:static
 let fieldIdentifiers = [];
 
 //フィールド宣言の変数表への文を一時的に格納する変数
@@ -40,6 +56,8 @@ let classIndex = 0;
 //登場したメソッド名を保存する配列
 //所属しているクラス名:className
 //メソッド名:methodName
+//アクセス修飾子:publicFlag
+//静的かどうか:staticFlag
 let method = [];
 
 //クラスの親と子の関係を示す配列
@@ -59,6 +77,7 @@ function syntaxAnalysis(){
 
     //スコープを初期化
     scope = 0;
+    maxScope = 0;
 
     //出てくる変数を格納する配列を初期化
     variables = [];
@@ -110,6 +129,11 @@ function syntaxAnalysis(){
         index++;
     }
 
+    //静的でないフィールドを変数表に格納するためのクラスのインスタンスのコードを格納
+    for(let i=0;i<classes.length;i++){
+        JavaScriptCode += "let tmp_filed_claass"+i+" = new "+classes[i].className+"();\n";
+    }
+
     //fieldDeclarationCodeにフィールド宣言のコードを格納
     JavaScriptCode += fieldDeclarationCode;
 
@@ -124,13 +148,67 @@ function syntaxAnalysis(){
             classDiagram += 'class '+classes[i].className + ' {\n';
             for(let j=0;j<fieldIdentifiers.length;j++){
                 if(fieldIdentifiers[j].className==classes[i].className){
-                    classDiagram += '+'+fieldIdentifiers[j].fieldName +'\n';
+                    //アクセス修飾子がprivateであれば-をつける
+                    if(!fieldIdentifiers[j].access){
+                        classDiagram += '- ';
+                    //publicであれば+をつける
+                    }else{
+                        classDiagram += '+ ';
+                    }
+
+                    //型を追加
+                    if(fieldIdentifiers[j].type==25){
+                        classDiagram += 'int ';
+                    }else if(fieldIdentifiers[j].type==26){
+                        classDiagram += 'byte ';
+                    }else if(fieldIdentifiers[j].type==27){
+                        classDiagram += 'short ';
+                    }else if(fieldIdentifiers[j].type==28){
+                        classDiagram += 'long ';
+                    }else if(fieldIdentifiers[j].type==29){
+                        classDiagram += 'float ';
+                    }else if(fieldIdentifiers[j].type==30){
+                        classDiagram += 'double ';
+                    }else if(fieldIdentifiers[j].type==31){
+                        classDiagram += 'boolean ';
+                    }else if(fieldIdentifiers[j].type==32){
+                        classDiagram += 'char ';
+                    }else if(fieldIdentifiers[j].type==33){
+                        classDiagram += 'String ';
+                    }else if(fieldIdentifiers[j].type==1){
+                        classDiagram += fieldIdentifiers[j].type+' ';
+                    }
+
+                    classDiagram += fieldIdentifiers[j].fieldName ;
+
+                    //静的であれば下線を引くために$をつける
+                    if(fieldIdentifiers[j].static){
+                        classDiagram += '$';
+                    }
+                    
+                    classDiagram += '\n';
                 }
             }
             for(let j=0;j<method.length;j++){
                 //現在参照しているメソッドがクラスのメソッドであれば
                 if(method[j].className==classes[i].className){
-                    classDiagram += '+ '+method[j].methodName+'()\n';
+                    //アクセス修飾子がprivateであれば-をつける
+                    if(!method[j].access){
+                        classDiagram += '- ';
+                    //publicであれば+をつける
+                    }else{
+                        classDiagram += '+ ';
+                    }
+
+                    classDiagram += method[j].methodName+'()';
+
+                    //静的であれば下線を引くために$をつける
+                    if(method[j].static){
+                        classDiagram += '$';
+                    }
+
+                    classDiagram += '\n';
+
                 }
             }
             classDiagram += '}\n';
@@ -276,13 +354,25 @@ function classDefinition(){
     while(tokenNums[index].tokenNum!=58){
         //アクセス修飾子がある場合次のトークンへ
         if(tokenNums[index].tokenNum==14 || tokenNums[index].tokenNum==15){
+            //publicの場合
+            if(tokenNums[index].tokenNum==14){
+                publicFlag = true;
+            //privateの場合
+            }else if(tokenNums[index].tokenNum==15){
+                publicFlag = false;
+            }
             index++;
+        }else{
+            publicFlag = true;
         }
 
         //他の修飾子がある場合次のトークンへ
         if(tokenNums[index].tokenNum==17){
             JavaScriptCode += "static ";
+            staticFlag = true;
             index++;
+        }else{
+            staticFlag = false;
         }
 
         //voidであれば次のトークンへ
@@ -311,7 +401,7 @@ function classDefinition(){
 
         //フィールドの場合は変数名を格納
         if(classFieldFlag){
-            fieldIdentifiers.push({className:classes[classIndex].className,fieldName:tokenNums[index].tokenValue});
+            fieldIdentifiers.push({className:classes[classIndex].className,fieldName:tokenNums[index].tokenValue,type:variable_type,access:publicFlag,static:staticFlag});
 
         //関数の場合は関数名を格納
         }else{
@@ -320,7 +410,7 @@ function classDefinition(){
             //JavaScriptに関数名を追加
             tmp_JavaScriptCode += tokenNums[index].tokenValue+" ";
             //関数名を配列に格納
-            method.push({className:classes[classIndex].className,methodName:tokenNums[index].tokenValue});
+            method.push({className:classes[classIndex].className,methodName:tokenNums[index].tokenValue,access:publicFlag,static:staticFlag});
             //main関数があるかどうかを確認
             if(tokenNums[index].tokenValue=="main"){
                 classes[classIndex].mainFlag=true;
@@ -350,16 +440,28 @@ function classDefinition(){
             JavaScriptCode +=tmp_JavaScriptCode;
 
             scope++;
+            //増やした後が最大値より小さい場合は最大値より大きくする
+            if(scope<=maxScope){
+                scope=maxScope+1;
+            }
+
+            //最大値を更新
+            maxScope=scope;
 
             //JavaScriptに(を追加
             JavaScriptCode += "(";
             index++;
 
-            functionFlag = true;
+            //voidであれば次のトークンへ
+            if(tokenNums[index].tokenNum==40){
+                index++;
+            }else{
+                functionFlag = true;
 
-            fieldDeclaration();
+                fieldDeclaration();
 
-            functionFlag = false;
+                functionFlag = false;
+            }
 
             //)でなければエラー
             if(tokenNums[index].tokenNum!=56){
@@ -939,7 +1041,12 @@ function declaratorList(variable_type){
 
         //フィールド宣言の場合はフィールド宣言のコードを追加
         if(classFieldFlag){
-            fieldDeclarationCode += "changeVariableValue(\""+variable_name+"\","+classes[classIndex].className+"."+variable_name+");";
+            //静的フィールドの場合
+            if(staticFlag){
+                fieldDeclarationCode += "changeVariableValue(\""+variable_name+"\","+classes[classIndex].className+"."+variable_name+");";
+            }else{
+                fieldDeclarationCode += "changeVariableValue(\""+variable_name+"\",tmp_filed_claass"+classIndex+"."+variable_name+");";
+            }
         }else{
             //JavaScriptに変数の代入をする文を追加
             JavaScriptCode += "changeVariableValue(\""+variable_name+"\","+variable_name+")";
@@ -1375,6 +1482,7 @@ function ifStatement(){
         //JavaScriptに{を追加
         JavaScriptCode += "{\n";
         scope++;
+        maxScope =scope;
         //文の関数
         statement();
         //Javascirptに現在のスコープの変数を削除する関数を追加
@@ -1394,7 +1502,7 @@ function ifStatement(){
         JavaScriptCode += "{\n";
         index++
         scope++;
-
+        maxScope =scope;
         //文の関数
         statement();
 
@@ -1432,6 +1540,7 @@ function ifStatement(){
         //{の場合
         }else if(tokenNums[index].tokenNum==57){
             scope++;
+            maxScope =scope;
             //JavaScriptに{を追加
             JavaScriptCode += "{\n";
             index++;
@@ -1459,6 +1568,7 @@ function ifStatement(){
             //JavaScriptに{を追加
             JavaScriptCode += "{\n";
             scope++;
+            maxScope =scope;
             //文の関数
             statement();
             //Javascirptに現在のスコープの変数を削除する関数を追加
@@ -1623,6 +1733,7 @@ function whileStatement(){
     JavaScriptCode += "{\n";
     index++;
     scope++;
+    maxScope =scope;
 
     //}が来るまで繰り返す
     while(tokenNums[index].tokenNum!=58){
@@ -1659,6 +1770,7 @@ function whileStatement(){
 function forStatement(){
 
     scope++;
+    maxScope =scope;
 
     //(でなければエラー
     if(tokenNums[index].tokenNum!=55){
@@ -1921,19 +2033,29 @@ function printStatement(){
         //JavaScriptに識別子または文字列を追加
         //識別子の場合
         if(tokenNums[index].tokenNum==1){
-            //フィールド値の場合はthis.を付けて追加
-            for(let i=0;i<fieldIdentifiers.length;i++){
-                if(fieldIdentifiers[i].fieldName==tokenNums[index].tokenValue){
-                    JavaScriptCode += "this."+tokenNums[index].tokenValue;
-                    break;
-                }
 
-                //最後まで探してなければそのまま追加
-                if(i==fieldIdentifiers.length-1){
-                    JavaScriptCode += "\""+tokenNums[index].tokenValue+"\"";
+            //フィールド値が存在していない場合
+            if(fieldIdentifiers.length==0){
+                //そのまま追加
+                JavaScriptCode += tokenNums[index].tokenValue;
+            
+            //存在している場合はフィールド値かどうかを判定
+            }else{
+                for(let i=0;i<fieldIdentifiers.length;i++){
+                    //フィールド値の場合はthis.を付けて追加
+                    if(fieldIdentifiers[i].fieldName==tokenNums[index].tokenValue){
+                        JavaScriptCode += "this."+tokenNums[index].tokenValue;
+                        break;
+                    }
+
+                    //最後まで探してなければそのまま追加
+                    if(i==fieldIdentifiers.length-1){
+                        JavaScriptCode += tokenNums[index].tokenValue;
+                    }
                 }
             }
-        //文字列の場合は""を追加
+            
+        //文字列の場合""を追加
         }else{
             JavaScriptCode += "\""+tokenNums[index].tokenValue+"\"";
         }
@@ -1942,8 +2064,15 @@ function printStatement(){
 
     //演算子があれば演算子の関数へ
     if(tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51 || tokenNums[index].tokenNum==52 || tokenNums[index].tokenNum==53 || tokenNums[index].tokenNum==54){
+        JavaScriptCode += tokenNums[index].tokenValue;
         index++;
-        operatorStatement();
+        //文字列であれば文字列の連結として追加
+        if(tokenNums[index].tokenNum==37){
+            JavaScriptCode += "\""+tokenNums[index].tokenValue+"\"";
+            index++;
+        }else{
+            operatorStatement(tokenNums[index].tokenValue);
+        }
     }
 
     //)でなければエラー
@@ -1990,7 +2119,7 @@ function printlnStatement(){
 
                     //最後まで探してなければそのまま追加
                     if(i==fieldIdentifiers.length-1){
-                        JavaScriptCode += "\""+tokenNums[index].tokenValue+"\"";
+                        JavaScriptCode += tokenNums[index].tokenValue;
                     }
                 }
             }
