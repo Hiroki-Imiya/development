@@ -225,10 +225,6 @@ function syntaxAnalysis(){
         }
     }
 
-    console.log(fieldIdentifiers);
-
-    console.log(classDiagram);
-
     //mermaidの再描画
     mermaid_element.removeAttribute('data-processed');
     mermaid_element.innerHTML = classDiagram;
@@ -2157,6 +2153,12 @@ function printlnStatement(){
 //返り値：なし
 function printfStatement(){
 
+    //書式文を一時保存する変数
+    let tmpString = "";
+
+    //JavaScriptにidがmessageの内容に加えるように追加
+    JavaScriptCode += "message.value+=";
+
     //(でなければエラー
     if(tokenNums[index].tokenNum!=55){
         throw new Error("(がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
@@ -2168,21 +2170,101 @@ function printfStatement(){
         throw new Error("printf文の書式文がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
-    
+    //書式文を保存
+    tmpString += tokenNums[index].tokenValue;
+    index++;
+
+    console.log(tmpString);
+
+    //分割した書式文を保存する変数
+    let formatStrings = [];
+
+    //書式文を型を指定する指定子で分割
+    for(let i=0;i<tmpString.length;i++){
+        //%があればその前までをJavaScriptに追加
+        if(tmpString[i]=="%"){
+            //%の前があれば保存
+            if(i!=0){
+                formatStrings.push("\""+tmpString.substring(0,i)+"\"");
+            }
+            //JavaScriptに%を追加
+            formatStrings.push("%"+tmpString[i+1]);
+            //%の後ろを保存
+            tmpString = tmpString.substring(i+2,tmpString.length);
+            i=0;
+        }
+
+        //最後まで探していれば保存
+        if(i==tmpString.length-1){
+            formatStrings.push("\""+tmpString+"\"");
+        }
+    }
+
+    console.log(formatStrings);
 
     //,がある間繰り返す
     while(tokenNums[index].tokenNum==63){
         index++;
 
+        //前から指定子を探す
+        for(let i=0;i<formatStrings.length;i++){
+            //指定子があればその添え字を保存
+            if(formatStrings[i]=='%d' || formatStrings[i]=='%f' || formatStrings[i]=='%s' || formatStrings[i]=='%c' || formatStrings[i]=='%b'){
+                var descriptor_index = i;
+                break;
+            }
+        }
+
+        console.log(descriptor_index);
+        
+
         //識別子または文字列であれば次のトークンへ
         if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==37){
+            //識別子の場合
+            if(tokenNums[index].tokenNum==1){
+                //フィールド値が存在していない場合
+                if(fieldIdentifiers.length==0){
+                    //そのまま追加
+                    formatStrings[descriptor_index] = tokenNums[index].tokenValue;
+                }else{
+                    for(let i=0;i<fieldIdentifiers.length;i++){
+                        //フィールド値の場合はthis.を付けて追加
+                        if(fieldIdentifiers[i].fieldName==tokenNums[index].tokenValue){
+                            formatStrings[descriptor_index] = "this."+tokenNums[index].tokenValue;
+                            break;
+                        }
+
+                        //最後まで探してなければそのまま追加
+                        if(i==fieldIdentifiers.length-1){
+                            formatStrings[descriptor_index] = tokenNums[index].tokenValue;
+                        }
+                    }
+                }
+
+            //文字列の場合
+            }else{
+                formatStrings[descriptor_index] += "\""+tokenNums[index].tokenValue+"\"";
+            }
             index++;
         }
+
 
         //演算子があれば演算子の関数へ
         if(tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51 || tokenNums[index].tokenNum==52 || tokenNums[index].tokenNum==53 || tokenNums[index].tokenNum==54){
             index++;
             operatorStatement();
+        }
+    }
+
+    console.log(formatStrings);
+
+    //書式文をJavaScriptに追加
+    for(let i=0;i<formatStrings.length;i++){
+        JavaScriptCode += formatStrings[i];
+
+        //最後でなければ+を追加
+        if(i!=formatStrings.length-1){
+            JavaScriptCode += "+";
         }
     }
 

@@ -172,8 +172,8 @@ compileButton.addEventListener('click', function () {
         // 構文解析を行う(返り値はクラス名)
         const className=syntaxAnalysis();
     
-        // エラーが発生しなかった場合はmessageに"正常終了"を出力
-        message.value += "正常終了\n\n";
+        // エラーが発生しなかった場合はmessageに"コンパイル完了"を出力
+        message.value += "コンパイル完了\n\n";
     
         // evalの代わりにFunctionコンストラクタを使用
         //JavaScriptCodeに変換したコードを格納(クラス名を返り値として返す)
