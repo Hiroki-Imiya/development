@@ -163,6 +163,14 @@ compileButton.addEventListener('click', function () {
         }
     }
 
+    //トークンの一覧から'\r'を削除
+    for(let i=0;i<tokenNums.length;i++){
+        if(tokenNums[i].tokenValue=='\r'){
+            tokenNums.splice(i,1);
+            i--;
+        }
+    }
+
     //トークンをコンソールに出力
     console.log("==トークン==");
     console.log(tokenNums);
