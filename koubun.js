@@ -375,8 +375,99 @@ function classDefinition(){
         if(tokenNums[index].tokenNum==40){
             index++;
 
-        //型であれば型の関数へ
-        }else{
+            let tmp_JavaScriptCode="";
+
+            //識別子でなければエラー
+            if(tokenNums[index].tokenNum!=1){
+                throw new Error("関数名がありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
+            }
+
+            //フィールドの場合は変数名を格納
+            if(classFieldFlag){
+                fieldIdentifiers.push({className:classes[classIndex].className,fieldName:tokenNums[index].tokenValue,type:variable_type,access:publicFlag,static:staticFlag});
+
+            //関数の場合は関数名を格納
+            }else{
+                //関数はジェネレーター関数として定義
+                JavaScriptCode += "*";
+                //JavaScriptに関数名を追加
+                tmp_JavaScriptCode += tokenNums[index].tokenValue+" ";
+                //関数名を配列に格納
+                method.push({className:classes[classIndex].className,methodName:tokenNums[index].tokenValue,access:publicFlag,static:staticFlag});
+                //main関数があるかどうかを確認
+                if(tokenNums[index].tokenValue=="main"){
+                    classes[classIndex].mainFlag=true;
+                }
+            }
+            index++;
+
+            //(でなければフィールド宣言として宣言子の並びへ
+            if(tokenNums[index].tokenNum!=55){
+                index--;
+                declaratorList(variable_type);
+
+                classFieldFlag = false;
+
+                //;でなければエラー
+                if(tokenNums[index].tokenNum!=69){
+                    throw new Error("フィールド宣言または変数宣言が;で終わっていません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+                }
+                index++;
+
+                //JavaScriptに;を追加
+                JavaScriptCode += ";\n";
+
+            //(であれば次のトークンへ
+            }else {
+
+                JavaScriptCode +=tmp_JavaScriptCode;
+
+                scope++;
+                //増やした後が最大値より小さい場合は最大値より大きくする
+                if(scope<=maxScope){
+                    scope=maxScope+1;
+                }
+
+                //最大値を更新
+                maxScope=scope;
+
+                //JavaScriptに(を追加
+                JavaScriptCode += "(";
+                index++;
+
+                //voidであれば次のトークンへ
+                if(tokenNums[index].tokenNum==40){
+                    index++;
+                }else{
+                    functionFlag = true;
+
+                    fieldDeclaration();
+
+                    functionFlag = false;
+                }
+
+                //)でなければエラー
+                if(tokenNums[index].tokenNum!=56){
+                    throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+                }
+
+                //JavaScriptに)を追加
+                JavaScriptCode += ")";
+                index++;
+
+                //;でなければ関数宣言の関数へ
+                if(tokenNums[index].tokenNum!=69){
+                    functionDeclaration();
+                    index++;
+                }else {
+                    //;であれば関数定義として次のトークンへ
+                    index++;
+                }
+            }
+
+
+        //型であれば型の関数へ(識別子の場合はクラス名と同じでない場合)
+        }else if(tokenNums[index].tokenNum==25 || tokenNums[index].tokenNum==26 || tokenNums[index].tokenNum==27 || tokenNums[index].tokenNum==28 || tokenNums[index].tokenNum==29 || tokenNums[index].tokenNum==30 || tokenNums[index].tokenNum==31 || tokenNums[index].tokenNum==32 || tokenNums[index].tokenNum==33 || (tokenNums[index].tokenNum==1 &&tokenNums[index].tokenValue!=classes[classIndex].className)){
 
             //2個先のトークンが(でなれけばフィールド宣言なのでフラグを立てる
             if(tokenNums[index+2].tokenNum!=55){
@@ -386,99 +477,102 @@ function classDefinition(){
             //型の関数
             variable_type=type();
 
-        }
+            let tmp_JavaScriptCode="";
 
-        let tmp_JavaScriptCode="";
-
-        //識別子でなければエラー
-        if(tokenNums[index].tokenNum!=1){
-            throw new Error("関数名がありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
-        }
-
-        //フィールドの場合は変数名を格納
-        if(classFieldFlag){
-            fieldIdentifiers.push({className:classes[classIndex].className,fieldName:tokenNums[index].tokenValue,type:variable_type,access:publicFlag,static:staticFlag});
-
-        //関数の場合は関数名を格納
-        }else{
-            //関数はジェネレーター関数として定義
-            JavaScriptCode += "*";
-            //JavaScriptに関数名を追加
-            tmp_JavaScriptCode += tokenNums[index].tokenValue+" ";
-            //関数名を配列に格納
-            method.push({className:classes[classIndex].className,methodName:tokenNums[index].tokenValue,access:publicFlag,static:staticFlag});
-            //main関数があるかどうかを確認
-            if(tokenNums[index].tokenValue=="main"){
-                classes[classIndex].mainFlag=true;
-            }
-        }
-        index++;
-
-        //(でなければフィールド宣言として宣言子の並びへ
-        if(tokenNums[index].tokenNum!=55){
-            index--;
-            declaratorList(variable_type);
-
-            classFieldFlag = false;
-
-            //;でなければエラー
-            if(tokenNums[index].tokenNum!=69){
-                throw new Error("フィールド宣言または変数宣言が;で終わっていません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-            }
-            index++;
-
-            //JavaScriptに;を追加
-            JavaScriptCode += ";\n";
-
-        //(であれば次のトークンへ
-        }else {
-
-            JavaScriptCode +=tmp_JavaScriptCode;
-
-            scope++;
-            //増やした後が最大値より小さい場合は最大値より大きくする
-            if(scope<=maxScope){
-                scope=maxScope+1;
+            //識別子でなければエラー
+            if(tokenNums[index].tokenNum!=1){
+                throw new Error("関数名がありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
-            //最大値を更新
-            maxScope=scope;
+            //フィールドの場合は変数名を格納
+            if(classFieldFlag){
+                fieldIdentifiers.push({className:classes[classIndex].className,fieldName:tokenNums[index].tokenValue,type:variable_type,access:publicFlag,static:staticFlag});
 
-            //JavaScriptに(を追加
-            JavaScriptCode += "(";
-            index++;
-
-            //voidであれば次のトークンへ
-            if(tokenNums[index].tokenNum==40){
-                index++;
+            //関数の場合は関数名を格納
             }else{
-                functionFlag = true;
-
-                fieldDeclaration();
-
-                functionFlag = false;
+                //関数はジェネレーター関数として定義
+                JavaScriptCode += "*";
+                //JavaScriptに関数名を追加
+                tmp_JavaScriptCode += tokenNums[index].tokenValue+" ";
+                //関数名を配列に格納
+                method.push({className:classes[classIndex].className,methodName:tokenNums[index].tokenValue,access:publicFlag,static:staticFlag});
+                //main関数があるかどうかを確認
+                if(tokenNums[index].tokenValue=="main"){
+                    classes[classIndex].mainFlag=true;
+                }
             }
-
-            //)でなければエラー
-            if(tokenNums[index].tokenNum!=56){
-                throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-            }
-
-            //JavaScriptに)を追加
-            JavaScriptCode += ")";
             index++;
 
-            //;でなければ関数宣言の関数へ
-            if(tokenNums[index].tokenNum!=69){
-                functionDeclaration();
-                index++;
-            }else {
-                //;であれば関数定義として次のトークンへ
-                index++;
-            }
-        }
+            //(でなければフィールド宣言として宣言子の並びへ
+            if(tokenNums[index].tokenNum!=55){
+                index--;
+                declaratorList(variable_type);
 
-        
+                classFieldFlag = false;
+
+                //;でなければエラー
+                if(tokenNums[index].tokenNum!=69){
+                    throw new Error("フィールド宣言または変数宣言が;で終わっていません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+                }
+                index++;
+
+                //JavaScriptに;を追加
+                JavaScriptCode += ";\n";
+
+            //(であれば次のトークンへ
+            }else {
+
+                JavaScriptCode +=tmp_JavaScriptCode;
+
+                scope++;
+                //増やした後が最大値より小さい場合は最大値より大きくする
+                if(scope<=maxScope){
+                    scope=maxScope+1;
+                }
+
+                //最大値を更新
+                maxScope=scope;
+
+                //JavaScriptに(を追加
+                JavaScriptCode += "(";
+                index++;
+
+                //voidであれば次のトークンへ
+                if(tokenNums[index].tokenNum==40){
+                    index++;
+                }else{
+                    functionFlag = true;
+
+                    fieldDeclaration();
+
+                    functionFlag = false;
+                }
+
+                //)でなければエラー
+                if(tokenNums[index].tokenNum!=56){
+                    throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+                }
+
+                //JavaScriptに)を追加
+                JavaScriptCode += ")";
+                index++;
+
+                //;でなければ関数宣言の関数へ
+                if(tokenNums[index].tokenNum!=69){
+                    functionDeclaration();
+                    index++;
+                }else {
+                    //;であれば関数定義として次のトークンへ
+                    index++;
+                }
+            }
+
+        //クラス名であればコンストラクタの関数へ
+        }else if(tokenNums[index].tokenValue==classes[classIndex].className){
+            index++;
+            constructorDeclaration();
+            index++;
+        }
 
         //もし途中でindexがtokenNumsの長さを超えた場合はエラー
         if(index>=tokenNums.length){
@@ -1301,6 +1395,71 @@ function declaratorList(variable_type){
     return variable_name;
 }
 
+//コンストラクタの関数
+//引数：なし
+//返り値：なし
+function constructorDeclaration(){
+    //JavaScriptにコンストラクタを追加
+    JavaScriptCode += "constructor";
+    
+    //(でなければエラー
+    if(tokenNums[index].tokenNum!=55){
+        throw new Error("(がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+    }
+    //JavaScriptに(を追加
+    JavaScriptCode += "(";
+    index++;    
+
+    //voidであれば次のトークンへ
+    if(tokenNums[index].tokenNum==40){
+        index++;
+    }else{
+        functionFlag = true;
+
+        fieldDeclaration();
+
+        functionFlag = false;
+    }
+
+    //)でなければエラー
+    if(tokenNums[index].tokenNum!=56){
+        throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+    }
+    //JavaScriptに)を追加
+    JavaScriptCode += ")";
+
+    index++;
+
+    //{でなければエラー
+    if(tokenNums[index].tokenNum!=57){
+        throw new Error("{がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+    }
+
+    //JavaScriptに{を追加
+    JavaScriptCode += "{\n";
+
+    //JavaScriptに現在の行数を格納する関数を追加
+    JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
+    JavaScriptCode += "yield;\n";
+    index++;
+
+    //}が来るまで繰り返す
+    while(tokenNums[index].tokenNum!=58){
+        //文の関数
+        statement();
+        index++;
+    }
+
+    //JavaScriptに現在のスコープの変数を削除する関数を追加
+    JavaScriptCode += "deleteVariable("+scope+");\n";
+    JavaScriptCode += "yield;\n";
+
+    //JavaScriptに}を追加
+    JavaScriptCode += "}\n";
+    scope--;
+
+
+}
 //関数宣言の関数
 //引数：なし
 //返り値：なし
@@ -1419,6 +1578,17 @@ function statement(){
                 throw new Error(";がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
             break;
+
+        //superの場合
+        case 42:
+            index++;
+            superStatement();
+            //;でなければエラー
+            if(tokenNums[index].tokenNum!=69){
+                throw new Error(";がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+            }
+            break;
+
         //識別子の場合
         case 1:
             index++;
@@ -1441,7 +1611,6 @@ function statement(){
             break;
         default:
             throw new Error("文エラー.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-            break;
     }
 }
 
@@ -2378,5 +2547,54 @@ function functionCallStatement(functionInfo){
     JavaScriptCode += "yield;\n";
     JavaScriptCode += "}\n";
 
+
+}
+
+//親クラスの関数等の呼び出し
+//引数：なし
+//返り値：なし
+function superStatement(){
+
+    //JavaScriptにsuperを追加
+    JavaScriptCode += "super";
+
+    //(でなければエラー
+    if(tokenNums[index].tokenNum!=55){
+        throw new Error("(がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+    }
+
+    //JavaScriptに(を追加
+    JavaScriptCode += "(";
+    index++;
+
+    //識別子または整数であれば次のトークンへ
+    if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==35){
+        //JavaScriptに識別子または整数を追加
+        JavaScriptCode += tokenNums[index].tokenValue;
+        index++;
+    }
+
+    //,がある間繰り返す
+    while(tokenNums[index].tokenNum==63){
+        //JavaScriptに,を追加
+        JavaScriptCode += ",";
+        index++;
+
+        //識別子または整数であれば次のトークンへ
+        if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==35){
+            //JavaScriptに識別子または整数を追加
+            JavaScriptCode += tokenNums[index].tokenValue;
+            index++;
+        }
+    }
+
+    //)でなければエラー
+    if(tokenNums[index].tokenNum!=56){
+        throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+    }
+
+    //JavaScriptに)を追加
+    JavaScriptCode += ")";
+    index++;
 
 }

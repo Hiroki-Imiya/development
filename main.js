@@ -289,6 +289,10 @@ function identifyToken(tmp_token){
         tokenNum=39;
     }else if(tmp_token=="void"){
         tokenNum=40;
+    }else if(tmp_token=="this"){
+        tokenNum=42;
+    }else if(tmp_token=="super"){
+        tokenNum=43;
     }else if(tmp_token=="+"){
         tokenNum=50;
     }else if(tmp_token=="-"){
