@@ -463,9 +463,6 @@ function classDefinition(){
             if(tokenNums[index].tokenNum!=56){
                 throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
-
-            //JavaScriptに)を追加
-            JavaScriptCode += ")";
             index++;
 
             //;でなければ関数宣言の関数へ
@@ -1287,6 +1284,13 @@ function declaratorList(variable_type){
                 //変数を配列に格納
                 variables.push(variable);
             }
+
+            JavaScriptCode +="){\n";
+
+            JavaScriptCode += "addVariable(\""+variable_name+"\",\""+variable_type+"\",0,"+scope+");\n";
+
+            //JavaScriptに変数の代入をする文を追加
+            JavaScriptCode += "changeVariableValue(\""+variable_name+"\","+variable_name+");\n";
         }
     }
 
@@ -1313,8 +1317,6 @@ function functionDeclaration(){
     if(tokenNums[index].tokenNum!=57){
         throw new Error("{がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
-    //JavaScriptに{を追加
-    JavaScriptCode += "{\n";
     //Javascriptに現在の行数を格納する関数を追加
     JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
     JavaScriptCode += "yield;\n";
