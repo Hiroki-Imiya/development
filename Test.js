@@ -59,6 +59,10 @@
 
 		ta=4;
 
+		tgag(){
+			console.log("Test");
+		}
+
 		static main(){
 			let g=0;
 			console.log(this.a);
@@ -79,38 +83,16 @@
 
 	//Testを継承したnewTestクラス
 	class newTest extends Test{
-		static main(){
-			super.main();
+		tgag(){
+			super.tgag();
 			console.log("newTest");
 		}
 	}
 
 	let tre=new Test();
 	console.log("ts"+tre.ta);
-	Test.main();
-	newTest.main();
 
-	for(let i=0;i<0;i++){
-		console.log("for");
-	}
+	let newtre=new newTest();
+	newtre.tgag();
+	
 
-
-	let tmpString = "Hello %s World %d";
-
-	//分割した書式文を保存する変数
-    let formatStrings = [];
-
-    //書式文を型を指定する指定子で分割
-    for(let i=0;i<tmpString.length;i++){
-        //%があればその前までをJavaScriptに追加
-        if(tmpString[i]=="%"){
-            formatStrings.push("\""+tmpString.substring(0,i)+"\"");
-            //JavaScriptに%を追加
-            formatStrings.push("%"+tmpString[i+1]);
-            //%の後ろを保存
-            tmpString = tmpString.substring(i+1,tmpString.length);
-            i=0;
-        }
-    }
-
-    console.log(formatStrings);

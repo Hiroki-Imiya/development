@@ -451,6 +451,9 @@ function classDefinition(){
             //voidであれば次のトークンへ
             if(tokenNums[index].tokenNum==40){
                 index++;
+
+                //JavaScriptに)を追加
+                JavaScriptCode += "){\n";
             }else{
                 functionFlag = true;
 
@@ -1411,6 +1414,7 @@ function statement(){
             if(tokenNums[index].tokenNum!=69){
                 throw new Error(";がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
+
             break;
         //breakの場合
         case 12:
@@ -1421,6 +1425,19 @@ function statement(){
                 throw new Error(";がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
             break;
+
+
+        //superの場合
+        case 43:
+            index++;
+            superStatement();
+            //;でなければエラー
+            if(tokenNums[index].tokenNum!=69){
+                throw new Error(";がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+            }
+
+            break;
+        
         //識別子の場合
         case 1:
             index++;
@@ -2342,14 +2359,12 @@ function operatorStatement(identifier){
 //返り値：なし
 function functionCallStatement(functionInfo){
 
-    //識別子または整数または文字列でなければエラー
-    if(tokenNums[index].tokenNum!=1 && tokenNums[index].tokenNum!=35 && tokenNums[index].tokenNum!=37){
-        throw new Error("関数の引数として正しくありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+    //識別子または整数または文字列であれば次のトークンへ
+    if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==35 || tokenNums[index].tokenNum==37){
+        //JavaScriptに識別子または整数または文字列を追加
+        JavaScriptCode += tokenNums[index].tokenValue;
+        index++;
     }
-
-    //JavaScriptに識別子または整数または文字列を追加
-    JavaScriptCode += tokenNums[index].tokenValue;
-    index++;
 
     //,がある間繰り返す
     while(tokenNums[index].tokenNum==63){
@@ -2380,5 +2395,85 @@ function functionCallStatement(functionInfo){
     JavaScriptCode += "yield;\n";
     JavaScriptCode += "}\n";
 
+
+}
+
+//親クラスの関数等の呼び出し
+//引数：なし
+//返り値：なし
+function superStatement(){
+
+    //ジェネレーター関数用に関数の情報を保存する変数の宣言を追加
+    let functionInfo="tmp_"+tokenNums[index+1].tokenValue;
+    JavaScriptCode += "let "+functionInfo+"=";
+
+    //JavaScriptにsuperを追加
+    JavaScriptCode += "super";
+
+    //.(ドット)でなければエラー
+    if(tokenNums[index].tokenNum!=64){
+        throw new Error(".(ドット)がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+    }
+
+    //JavaScriptに.を追加
+    JavaScriptCode += ".";
+    index++;
+
+    //識別子でなければエラー
+    if(tokenNums[index].tokenNum!=1){
+        throw new Error("識別子がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+    }
+
+    //JavaScriptに識別子を追加
+    JavaScriptCode += tokenNums[index].tokenValue;
+    index++;
+
+    //(でなければエラー
+    if(tokenNums[index].tokenNum!=55){
+        throw new Error("(がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+    }
+
+    //JavaScriptに(を追加
+    JavaScriptCode += "(";
+    index++;
+
+    //識別子または整数であれば次のトークンへ
+    if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==35){
+        //JavaScriptに識別子または整数を追加
+        JavaScriptCode += tokenNums[index].tokenValue;
+        index++;
+    }
+
+    //,がある間繰り返す
+    while(tokenNums[index].tokenNum==63){
+        //JavaScriptに,を追加
+        JavaScriptCode += ",";
+        index++;
+
+        //識別子または整数であれば次のトークンへ
+        if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==35){
+            //JavaScriptに識別子または整数を追加
+            JavaScriptCode += tokenNums[index].tokenValue;
+            index++;
+        }
+    }
+
+    //)でなければエラー
+    if(tokenNums[index].tokenNum!=56){
+        throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
+    }
+
+    //JavaScriptに)を追加
+    JavaScriptCode += ")";
+    index++;
+
+    //JavaScriptに;を追加
+    JavaScriptCode += ";\n";
+
+    //ジェネレーター関数を実行する文を追加
+    JavaScriptCode += ";\n";
+    JavaScriptCode += "while(!"+functionInfo+".next().done){\n";
+    JavaScriptCode += "yield;\n";
+    JavaScriptCode += "}\n";
 
 }
