@@ -1049,252 +1049,155 @@ function declaratorList(variable_type){
         }
 
     }else {
-        //関数の引数でなければ変数
-        if(!functionFlag){
-            //javascriptに;を追加(フィールド宣言の場合は追加しない)
-            if(!classFieldFlag){
-                JavaScriptCode += ";\n";
-            }
-
-            //変数を配列に格納するためにオブジェクトを作成(変数の型は番号から文字へ)
-            if(variable_type==25){
-                //配列の場合
-                if(arrayFlag){
-                    //フィールドの場合
-                    if(classFieldFlag){
-                        fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"int[]\",[],"+scope+");\n";
-                    }else {
-                        JavaScriptCode += "addVariable(\""+variable_name+"\",\"int[]\",[],"+scope+");\n";
-                    }
-
-                    //フラグを戻す
-                    arrayFlag = false;
-                }else {
-                    //フィールドの場合
-                    if(classFieldFlag){
-                        fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"int\",0,"+scope+");\n";
-                    }else {
-                        JavaScriptCode += "addVariable(\""+variable_name+"\",\"int\",0,"+scope+");\n";
-                    }
-                }
-            }else if(variable_type==26){
-                //配列の場合
-                if(arrayFlag){
-                    //フィールドの場合
-                    if(classFieldFlag){
-                        fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"byte[]\",[],"+scope+");\n";
-
-                    }else {
-                        JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte[]\",[],"+scope+");\n";
-                    }
-
-                    //フラグを戻す
-                    arrayFlag = false;
-                }else {
-                    //フィールドの場合
-                    if(classFieldFlag){
-                        fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"byte\",0,"+scope+");\n";
-                    }else {
-                        JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte\",0,"+scope+");\n";
-                    }
-                }
-            }else if(variable_type==27){
-                let variable = {
-                    Name:variable_name,
-                    Type:"short",
-                    Value:0,
-                    Scope:scope
-                };
-            
-                //変数を配列に格納
-                variables.push(variable);
-            }else if(variable_type==28){
-                let variable = {
-                    Name:variable_name,
-                    Type:"long",
-                    Value:0,
-                    Scope:scope
-                };
-            
-                //変数を配列に格納
-                variables.push(variable);
-            }else if(variable_type==29){
-                let variable = {
-                    Name:variable_name,
-                    Type:"float",
-                    Value:0.0,
-                    Scope:scope
-                };
-            
-                //変数を配列に格納
-                variables.push(variable);
-            }else if(variable_type==30){
-                //配列の場合
-                if(arrayFlag){
-                    //フィールドの場合
-                    if(classFieldFlag){
-                        fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"double[]\",[],"+scope+");\n";
-                    }else {
-                        JavaScriptCode += "addVariable(\""+variable_name+"\",\"double[]\",[],"+scope+");\n";
-                    }
-
-                    //フラグを戻す
-                    arrayFlag = false;
-                }else {
-                    //フィールドの場合
-                    if(classFieldFlag){
-                        fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"double\",0.0,"+scope+");\n";
-                    }else {
-                        JavaScriptCode += "addVariable(\""+variable_name+"\",\"double\",0.0,"+scope+");\n";
-                    }
-                }
-            }else if(variable_type==31){
-                let variable = {
-                    Name:variable_name,
-                    Type:"boolean",
-                    Value:false,
-                    Scope:scope
-                };
-            
-                //変数を配列に格納
-                variables.push(variable);
-            }else if(variable_type==32){
-                JavaScriptCode += "addVariable(\""+variable_name+"\",\"char\",'a',"+scope+");\n";
-            }else if(variable_type==33){
-                //配列の場合
-                if(arrayFlag){
-                    //フィールドの場合
-                    if(classFieldFlag){
-                        fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"String[]\",[],"+scope+");\n";
-                    }else {
-                        JavaScriptCode += "addVariable(\""+variable_name+"\",\"String[]\",[],"+scope+");\n";
-                    }
-
-                    //フラグを戻す
-                    arrayFlag = false;
-                }else {
-                    //フィールドの場合
-                    if(classFieldFlag){
-                        fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"String\",\"\","+scope+");\n";
-                    }else {
-                        JavaScriptCode += "addVariable(\""+variable_name+"\",\"String\",\"\","+scope+");\n";
-                    }
-                }
-            }else if(variable_type==34){
-                let variable = {
-                    Name:variable_name,
-                    Type:"ArrayList",
-                    Value:[],
-                    Scope:scope
-                };
-
-                //変数を配列に格納
-                variables.push(variable);
-            }
-        }else {
-            //関数の引数の場合
-            //変数を配列に格納するためにオブジェクトを作成(変数の型は番号から文字へ)
-            if(variable_type==25){
-                //配列の場合
-                if(arrayFlag){
-                    addVariable(variable_name,"int[]",[],scope);
-
-                    //フラグを戻す
-                    arrayFlag = false;
-                }else {
-                    addVariable(variable_name,"int",0,scope);
-                }
-            }else if(variable_type==26){
-                //配列の場合
-                if(arrayFlag){
-                    addVariable(variable_name,"byte[]",[],scope);
-
-                    //フラグを戻す
-                    arrayFlag = false;
-                }else {
-                    addVariable(variable_name,"byte",0,scope);
-                }
-            }else if(variable_type==27){
-                let variable = {
-                    Name:variable_name,
-                    Type:"short",
-                    Value:0,
-                    Scope:scope
-                };
-            
-                //変数を配列に格納
-                variables.push(variable);
-            }else if(variable_type==28){
-                let variable = {
-                    Name:variable_name,
-                    Type:"long",
-                    Value:0,
-                    Scope:scope
-                };
-            
-                //変数を配列に格納
-                variables.push(variable);
-            }else if(variable_type==29){
-                let variable = {
-                    Name:variable_name,
-                    Type:"float",
-                    Value:0.0,
-                    Scope:scope
-                };
-            
-                //変数を配列に格納
-                variables.push(variable);
-            }else if(variable_type==30){
-                //配列の場合
-                if(arrayFlag){
-                    addVariable(variable_name,"double[]",[],scope);
-
-                    //フラグを戻す
-                    arrayFlag = false;
-                }else {
-                    addVariable(variable_name,"double",0.0,scope);
-                }
-            }else if(variable_type==31){
-                let variable = {
-                    Name:variable_name,
-                    Type:"boolean",
-                    Value:false,
-                    Scope:scope
-                };
-            
-                //変数を配列に格納
-                variables.push(variable);
-            }else if(variable_type==32){
-                addVariable(variable_name,"char",'');
-            }else if(variable_type==33){
-                //配列の場合
-                if(arrayFlag){
-                    addVariable(variable_name,"String[]",[],scope);
-
-                    //フラグを戻す
-                    arrayFlag = false;
-                }else {
-                    addVariable(variable_name,"String","",scope);
-                }
-            }else if(variable_type==34){
-                let variable = {
-                    Name:variable_name,
-                    Type:"ArrayList",
-                    Value:[],
-                    Scope:scope
-                };
-
-                //変数を配列に格納
-                variables.push(variable);
-            }
-
-            JavaScriptCode +="){\n";
-
-            JavaScriptCode += "addVariable(\""+variable_name+"\",\""+variable_type+"\",0,"+scope+");\n";
-
-            //JavaScriptに変数の代入をする文を追加
-            JavaScriptCode += "changeVariableValue(\""+variable_name+"\","+variable_name+");\n";
+        
+        //javascriptに;を追加(フィールド宣言と引数の場合は追加しない)
+        if(!classFieldFlag && !functionFlag){
+            JavaScriptCode += ";\n";
         }
+
+        //関数の引数の場合は){を追加
+        if(functionFlag){
+            JavaScriptCode += "){\n";
+        }
+
+        //変数を配列に格納するためにオブジェクトを作成(変数の型は番号から文字へ)
+        if(variable_type==25){
+            //配列の場合
+            if(arrayFlag){
+                //フィールドの場合
+                if(classFieldFlag){
+                    fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"int[]\",[],"+scope+");\n";
+                }else {
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"int[]\",[],"+scope+");\n";
+                }
+
+                //フラグを戻す
+                arrayFlag = false;
+            }else {
+                //フィールドの場合
+                if(classFieldFlag){
+                    fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"int\",0,"+scope+");\n";
+                }else {
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"int\",0,"+scope+");\n";
+                }
+            }
+        }else if(variable_type==26){
+            //配列の場合
+            if(arrayFlag){
+                //フィールドの場合
+                if(classFieldFlag){
+                    fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"byte[]\",[],"+scope+");\n";
+
+                }else {
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte[]\",[],"+scope+");\n";
+                }
+
+                //フラグを戻す
+                arrayFlag = false;
+            }else {
+                //フィールドの場合
+                if(classFieldFlag){
+                    fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"byte\",0,"+scope+");\n";
+                }else {
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"byte\",0,"+scope+");\n";
+                }
+            }
+        }else if(variable_type==27){
+            let variable = {
+                Name:variable_name,
+                Type:"short",
+                Value:0,
+                Scope:scope
+            };
+        
+            //変数を配列に格納
+            variables.push(variable);
+        }else if(variable_type==28){
+            let variable = {
+                Name:variable_name,
+                Type:"long",
+                Value:0,
+                Scope:scope
+            };
+        
+            //変数を配列に格納
+            variables.push(variable);
+        }else if(variable_type==29){
+            let variable = {
+                Name:variable_name,
+                Type:"float",
+                Value:0.0,
+                Scope:scope
+            };
+        
+            //変数を配列に格納
+            variables.push(variable);
+        }else if(variable_type==30){
+            //配列の場合
+            if(arrayFlag){
+                //フィールドの場合
+                if(classFieldFlag){
+                    fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"double[]\",[],"+scope+");\n";
+                }else {
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"double[]\",[],"+scope+");\n";
+                }
+
+                //フラグを戻す
+                arrayFlag = false;
+            }else {
+                //フィールドの場合
+                if(classFieldFlag){
+                    fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"double\",0.0,"+scope+");\n";
+                }else {
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"double\",0.0,"+scope+");\n";
+                }
+            }
+        }else if(variable_type==31){
+            let variable = {
+                Name:variable_name,
+                Type:"boolean",
+                Value:false,
+                Scope:scope
+            };
+        
+            //変数を配列に格納
+            variables.push(variable);
+        }else if(variable_type==32){
+            JavaScriptCode += "addVariable(\""+variable_name+"\",\"char\",'a',"+scope+");\n";
+        }else if(variable_type==33){
+            //配列の場合
+            if(arrayFlag){
+                //フィールドの場合
+                if(classFieldFlag){
+                    fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"String[]\",[],"+scope+");\n";
+                }else {
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"String[]\",[],"+scope+");\n";
+                }
+
+                //フラグを戻す
+                arrayFlag = false;
+            }else {
+                //フィールドの場合
+                if(classFieldFlag){
+                    fieldDeclarationCode += "addVariable(\""+variable_name+"\",\"String\",\"\","+scope+");\n";
+                }else {
+                    JavaScriptCode += "addVariable(\""+variable_name+"\",\"String\",\"\","+scope+");\n";
+                }
+            }
+        }else if(variable_type==34){
+            let variable = {
+                Name:variable_name,
+                Type:"ArrayList",
+                Value:[],
+                Scope:scope
+            };
+
+            //変数を配列に格納
+            variables.push(variable);
+        }
+
+        //JavaScriptに変数の代入をする文を追加
+        JavaScriptCode += "changeVariableValue(\""+variable_name+"\","+variable_name+");\n";
     }
 
     //,があればもう一度宣言子の並びの関数へ
