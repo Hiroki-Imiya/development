@@ -1,98 +1,72 @@
-//このJavaScriptは、JavaのコードをJavaScriptに変換した内容を確認するためのものです。
-
-/*class Test {
+class Customer {
+	my_money =100;
+	*pay (money ){
+	addVariable("money","int",0,1);
+	changeVariableValue("money",money);
+	saveLine(3);
+	yield;
+	this.my_money=money;
+	changeVariableValue("my_money",this.my_money);
+	message.value+="\n";
+	saveLine(4);
+	yield;
+	deleteVariable(1);
+	yield;
+	}
+	}
+	class newCustomer extends Customer {
+	*earn (money ){
+	addVariable("money","int",0,2);
+	changeVariableValue("money",money);
+	saveLine(9);
+	yield;
+	this.my_money=money;
+	changeVariableValue("my_money",this.my_money);
+	message.value+="\n";
+	saveLine(10);
+	yield;
+	deleteVariable(2);
+	yield;
+	}
+	}
+	class Test {
 	static *main (args ){
-	let a =0;
+	addVariable("args","String[]",[],3);
+	changeVariableValue("args",args);
+	saveLine(15);
 	yield;
-	while(a < 10){
-	console.log("a");
-	a++;
-	}
+	let a =20;
+	addVariable("a","int",0,3);
+	changeVariableValue("a",a);
+	saveLine(16);
 	yield;
-	console.log(a);
-	let i =0;
-	for(i=0;i > 29;i++){
-	for(a=0;a > i+1;a++){
-	console.log(a);
+	let human =new newCustomer();
+	addVariable("human","newCustomer",0,3);
+	changeVariableValue("human",human);
+	saveLine(17);
+	yield;
+	let tmp_earn=human.earn(a);
+	while(!tmp_earn.next().done){
+	yield;
+	}
+	;
+	message.value+="\n";
+	saveLine(18);
+	yield;
+	let tmp_pay=human.pay(a);
+	while(!tmp_pay.next().done){
+	yield;
+	}
+	;
+	message.value+="\n";
+	saveLine(19);
+	yield;
+	deleteVariable(3);
+	yield;
 	}
 	}
-	}
-	}*/
-
-	/*let JavaScriptCode = "class Test {\n";
-	JavaScriptCode += "\tstatic *main (args ){\n";
-	JavaScriptCode += "\tlet a =0;\n";
-	JavaScriptCode += "\tyield;\n";
-	JavaScriptCode += "\twhile(a < 10){\n";
-	JavaScriptCode += "\tconsole.log(\"a\");\n";
-	JavaScriptCode += "\ta++;\n";
-	JavaScriptCode += "\t}\n";
-	JavaScriptCode += "\tyield;\n";
-	JavaScriptCode += "\tconsole.log(a);\n";
-	JavaScriptCode += "\tlet i =0;\n";
-	JavaScriptCode += "\tfor(i=0;i > 29;i++){\n";
-	JavaScriptCode += "\tfor(a=0;a > i+1;a++){\n";
-	JavaScriptCode += "\tconsole.log(a);\n";
-	JavaScriptCode += "\t}\n";
-	JavaScriptCode += "\t}\n";
-	JavaScriptCode += "\t}\n";
-	JavaScriptCode += "\t}\n";
-
-
-	const func = new Function(JavaScriptCode+"return Test;");
-	const TestClass=func();
-	
-	const run=document.getElementById('run');
-	//ジェネレータ関数であるmainを実行
-	const gen=TestClass.main();
-
-	//ボタンを押したときの処理
-	run.addEventListener('click',function(){
-		//ジェネレータ関数の実行
-		gen.next();
-	});*/
-
-
-
-	class Test{
-		static a=1;
-
-		ta=4;
-
-		tgag(){
-			console.log("Test");
-		}
-
-		static main(){
-			let g=0;
-			console.log(this.a);
-			console.log(g);
-			console.log(Test.tmp);
-
-			const tmpInstance=new tmp();
-			tmpInstance.tmp_method();
-		}
-	}
-
-	class tmp{
-		tmp_method(){
-			console.log("tmp_method");
-		}
-	}
-
-
-	//Testを継承したnewTestクラス
-	class newTest extends Test{
-		tgag(){
-			super.tgag();
-			console.log("newTest");
-		}
-	}
-
-	let tre=new Test();
-	console.log("ts"+tre.ta);
-
-	let newtre=new newTest();
-	newtre.tgag();
-	
-
+	let tmp_filed_claass0 = new Customer();
+	let tmp_filed_claass1 = new newCustomer();
+	let tmp_filed_claass2 = new Test();
+	addVariable("my_money","int",0,0);
+	changeVariableValue("my_money",tmp_filed_claass0.my_money);

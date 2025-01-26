@@ -24,6 +24,9 @@ let currentRow = 0;
 //呼び出し元がクラスのフィールド宣言かどうかのフラグ
 let classFieldFlag = false;
 
+//呼び出し元が返り値かどうかのフラグ
+let returnFlag = false;
+
 //フィールド値やメソッドpublicかどうかのフラグ
 //publicの場合はtrue
 //privateの場合はfalse
@@ -59,7 +62,7 @@ let classIndex = 0;
 //アクセス修飾子:publicFlag
 //静的かどうか:staticFlag
 //引数の名前:argumentName[]
-//引数の型:argumentType[]
+//返り値の型:returnType
 let method = [];
 
 //クラスの親と子の関係を示す配列
@@ -67,9 +70,9 @@ let method = [];
 //子クラス名:child
 let classRelation = [];
 
-//クラスの相互関係を示す配列
+//クラスのインスタンスを示す配列
 //持っているクラス名:className
-//相互関係のクラス名:relation
+//インスタンス化されているクラス名:relation
 let mutualRelation = [];
 
 //構文解析を行う関数
@@ -214,13 +217,18 @@ function syntaxAnalysis(){
 
                     classDiagram += ')';
 
-                    //型を追加
+                    //返り値の型を追加
                     classDiagram += ' ';
-                    for(let k=0;k<method[j].argumentType.length;k++){
-                        if(k!=0){
-                            classDiagram += ',';
-                        }
-                        classDiagram += method[j].argumentType[k];
+                    if(method[j].returnType==25){
+                        classDiagram += 'int';
+                    }else if(method[j].returnType==30){
+                        classDiagram += 'double';
+                    }else if(method[j].returnType==31){
+                        classDiagram += 'boolean';
+                    }else if(method[j].returnType==32){
+                        classDiagram += 'char';
+                    }else if(method[j].returnType==33){
+                        classDiagram += 'String';
                     }
 
                     //静的であれば下線を引くために$をつける
@@ -402,10 +410,15 @@ function classDefinition(){
             //2個先のトークンが(でなれけばフィールド宣言なのでフラグを立てる
             if(tokenNums[index+2].tokenNum!=55){
                 classFieldFlag = true;
+            //戻り値のフラグを立てる
+            }else{
+                returnFlag = true;
             }
 
             //型の関数
             variable_type=type();
+
+            returnFlag = false;
 
         }
 
@@ -427,7 +440,7 @@ function classDefinition(){
             //JavaScriptに関数名を追加
             tmp_JavaScriptCode += tokenNums[index].tokenValue+" ";
             //関数名を配列に格納
-            method.push({className:classes[classIndex].className,methodName:tokenNums[index].tokenValue,access:publicFlag,static:staticFlag,argumentName:[],argumentType:[]});
+            method.push({className:classes[classIndex].className,methodName:tokenNums[index].tokenValue,access:publicFlag,static:staticFlag,argumentName:[],returnType:variable_type});
             //main関数があるかどうかを確認
             if(tokenNums[index].tokenValue=="main"){
                 classes[classIndex].mainFlag=true;
@@ -543,7 +556,7 @@ function type(){
     variable_type=tokenNums[index].tokenNum;
 
     //関数の引数かつフィールド宣言でない場合に型をJavaScriptに追加
-    if(!functionFlag  && !classFieldFlag){
+    if(!functionFlag  && !classFieldFlag && !returnFlag){
         JavaScriptCode += "let ";
     }
     index++;
@@ -568,43 +581,6 @@ function type(){
             throw new Error(">で終わっていません"+tokenNums[index].tokenNum+"配列の添字:"+index);
         }
         index++;
-    }
-
-    //関数の引数の場合
-    if(functionFlag){
-        //関数の引数の型を格納
-        if(variable_type==25){
-            //配列であれば[]を追加
-            if(arrayFlag){
-                method[method.length-1].argumentType.push("int[]");
-            }else{
-                method[method.length-1].argumentType.push("int");
-            }
-        }else if(variable_type==30){
-            if(arrayFlag){
-                method[method.length-1].argumentType.push("double[]");
-            }else{
-                method[method.length-1].argumentType.push("double");
-            }
-        }else if(variable_type==31){
-            if(arrayFlag){
-                method[method.length-1].argumentType.push("boolean[]");
-            }else{
-                method[method.length-1].argumentType.push("boolean");
-            }
-        }else if(variable_type==32){
-            if(arrayFlag){
-                method[method.length-1].argumentType.push("char[]");
-            }else{
-                method[method.length-1].argumentType.push("char");
-            }
-        }else if(variable_type==33){
-            if(arrayFlag){
-                method[method.length-1].argumentType.push("String[]");
-            }else{
-                method[method.length-1].argumentType.push("String");
-            }
-        }
     }
 
     //型を返す(初期化の際に使用する)
@@ -1864,7 +1840,7 @@ function forStatement(){
 function returnStatement(){
 
     //returnをJavaScriptに追加
-    JavaScriptCode += "return";
+    JavaScriptCode += "return ";
 
     //識別子でなければエラー
     if(tokenNums[index].tokenNum!=1){
@@ -2269,8 +2245,31 @@ function operatorStatement(identifier){
 
     //識別子または整数であれば次のトークンへ
     if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==35){
-        //JavaScriptに識別子または整数を追加 
-        JavaScriptCode += tokenNums[index].tokenValue;
+        //JavaScriptに整数の場合はそのまま追加
+        if(tokenNums[index].tokenNum==35){
+            JavaScriptCode += tokenNums[index].tokenValue;
+        //JavaScriptに識別子の場合はフィールド値かどうかを判定
+        }else{
+            //フィールド値が存在していない場合
+            if(fieldIdentifiers.length==0){
+                //そのまま追加
+                JavaScriptCode += tokenNums[index].tokenValue;
+            }else{
+                for(let i=0;i<fieldIdentifiers.length;i++){
+                    //フィールド値の場合はthis.を付けて追加
+                    if(fieldIdentifiers[i].fieldName==tokenNums[index].tokenValue){
+                        JavaScriptCode += "this."+tokenNums[index].tokenValue;
+                        break;
+                    }
+
+                    //最後まで探してなければそのまま追加
+                    if(i==fieldIdentifiers.length-1){
+                        JavaScriptCode += tokenNums[index].tokenValue;
+                    }
+                }
+            }
+        }
+
         index++;
     }
     //(であれば関数呼び出しの関数
@@ -2291,8 +2290,30 @@ function operatorStatement(identifier){
         index++;
         //識別子または整数であれば次のトークンへ
         if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==35){
-            //JavaScriptに識別子または整数を追加
+            //JavaScriptに整数の場合はそのまま追加
+        if(tokenNums[index].tokenNum==35){
             JavaScriptCode += tokenNums[index].tokenValue;
+        //JavaScriptに識別子の場合はフィールド値かどうかを判定
+        }else{
+            //フィールド値が存在していない場合
+            if(fieldIdentifiers.length==0){
+                //そのまま追加
+                JavaScriptCode += tokenNums[index].tokenValue;
+            }else{
+                for(let i=0;i<fieldIdentifiers.length;i++){
+                    //フィールド値の場合はthis.を付けて追加
+                    if(fieldIdentifiers[i].fieldName==tokenNums[index].tokenValue){
+                        JavaScriptCode += "this."+tokenNums[index].tokenValue;
+                        break;
+                    }
+
+                    //最後まで探してなければそのまま追加
+                    if(i==fieldIdentifiers.length-1){
+                        JavaScriptCode += tokenNums[index].tokenValue;
+                    }
+                }
+            }
+        }
             index++;
         }
 
@@ -2316,8 +2337,20 @@ function operatorStatement(identifier){
         JavaScriptCode += ";\n";
     }
 
-    //JavaScriptに代入するコードを追加
-    JavaScriptCode += "changeVariableValue(\""+identifier+"\","+identifier+")";
+    //フィールド値の場合はthis.を付けて追加
+    if(fieldIdentifiers.length!=0){
+        for(let i=0;i<fieldIdentifiers.length;i++){
+            if(fieldIdentifiers[i].fieldName==identifier){
+                JavaScriptCode += "changeVariableValue(\""+identifier+"\",this."+identifier+")";
+                break;
+            }
+
+            //最後まで探してなければそのまま追加
+            if(i==fieldIdentifiers.length-1){
+                JavaScriptCode += "changeVariableValue(\""+identifier+"\","+identifier+")";
+            }
+        }
+    }
 
 }
 
