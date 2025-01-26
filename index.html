@@ -3,13 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <title>開発</title>
+    <script src="mermaid.js"></script>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'defalt'
+        });
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.0/ace.js"></script>
+    <link rel="stylesheet" href="index.css"></link>
+
 </head>
 <body>
-    <h1>開発</h1>
-    <p>開発に関する情報を表示します。</p>
+    <!--Aceエディターの設定-->
+    <div id="editor" style="height: 400px; width: 39%;float: left;"></div>
+    <script src="aceEditor.js"></script>
+
+
+    <!--変数表-->
+    <div style="float: right; width: 60%; height: 450px; overflow: auto; border: 1px solid black;">
+        <table id="variable_table" border="1"></table>
+    </div>
+
+    <div style="float: left;">
+        <!--実行ボタン-->
+        <button id="compile" >コンパイル</button>
+
+        <!--ステップ実行のボタン-->
+        <button id="step" >ステップ実行</button>
+    </div>
+
+    <!--実行結果-->
+    <div id="result" style="float: left;"></div>
+
+    <!--メッセージ-->
+    <div><textarea id="message" style="width: 40%; height: 400px; float: left;" readonly></textarea></div>
+
+    <!--mermaidの設定-->
+    <div id="mermaid_id" class="mermaid" style="width: 59%; float: right; border: 0.1px solid black;"> </div>
 
     <!--javascriptファイルを読み取る-->
     <script src="main.js"></script>
+    <script src="koubun.js"></script>
+    <script src="step.js"></script>
 
 </body>
 </html>
