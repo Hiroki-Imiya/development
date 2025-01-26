@@ -15,16 +15,18 @@
 <body>
 
     <div class="mermaid" id="mermaid_id" style="width: 60%; float: right;">
+        classDiagram
+    class User{
+        +String id
+        +String name
+        +post()
+        +like(fa,) int,int
+    }
+
     </div>
 
     <script >
-        function mermaid_function(){
-            let h=document.getElementById('mermaid_id');
-            h.removeAttribute('data-processed');
-            h.innerHTML = 'graph TD; C-->B; A-->C; B-->D; C-->D;';
-            mermaid.init();
-            console.log('mermaid.js loaded');
-        }
+        
 
         //mermaid_function();
 

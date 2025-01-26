@@ -58,6 +58,8 @@ let classIndex = 0;
 //メソッド名:methodName
 //アクセス修飾子:publicFlag
 //静的かどうか:staticFlag
+//引数の名前:argumentName[]
+//引数の型:argumentType[]
 let method = [];
 
 //クラスの親と子の関係を示す配列
@@ -200,7 +202,26 @@ function syntaxAnalysis(){
                         classDiagram += '+ ';
                     }
 
-                    classDiagram += method[j].methodName+'()';
+                    classDiagram += method[j].methodName+'(';
+
+                    //引数があれば追加
+                    for(let k=0;k<method[j].argumentName.length;k++){
+                        if(k!=0){
+                            classDiagram += ',';
+                        }
+                        classDiagram += method[j].argumentName[k];
+                    }
+
+                    classDiagram += ')';
+
+                    //型を追加
+                    classDiagram += ' ';
+                    for(let k=0;k<method[j].argumentType.length;k++){
+                        if(k!=0){
+                            classDiagram += ',';
+                        }
+                        classDiagram += method[j].argumentType[k];
+                    }
 
                     //静的であれば下線を引くために$をつける
                     if(method[j].static){
@@ -406,7 +427,7 @@ function classDefinition(){
             //JavaScriptに関数名を追加
             tmp_JavaScriptCode += tokenNums[index].tokenValue+" ";
             //関数名を配列に格納
-            method.push({className:classes[classIndex].className,methodName:tokenNums[index].tokenValue,access:publicFlag,static:staticFlag});
+            method.push({className:classes[classIndex].className,methodName:tokenNums[index].tokenValue,access:publicFlag,static:staticFlag,argumentName:[],argumentType:[]});
             //main関数があるかどうかを確認
             if(tokenNums[index].tokenValue=="main"){
                 classes[classIndex].mainFlag=true;
@@ -549,6 +570,43 @@ function type(){
         index++;
     }
 
+    //関数の引数の場合
+    if(functionFlag){
+        //関数の引数の型を格納
+        if(variable_type==25){
+            //配列であれば[]を追加
+            if(arrayFlag){
+                method[method.length-1].argumentType.push("int[]");
+            }else{
+                method[method.length-1].argumentType.push("int");
+            }
+        }else if(variable_type==30){
+            if(arrayFlag){
+                method[method.length-1].argumentType.push("double[]");
+            }else{
+                method[method.length-1].argumentType.push("double");
+            }
+        }else if(variable_type==31){
+            if(arrayFlag){
+                method[method.length-1].argumentType.push("boolean[]");
+            }else{
+                method[method.length-1].argumentType.push("boolean");
+            }
+        }else if(variable_type==32){
+            if(arrayFlag){
+                method[method.length-1].argumentType.push("char[]");
+            }else{
+                method[method.length-1].argumentType.push("char");
+            }
+        }else if(variable_type==33){
+            if(arrayFlag){
+                method[method.length-1].argumentType.push("String[]");
+            }else{
+                method[method.length-1].argumentType.push("String");
+            }
+        }
+    }
+
     //型を返す(初期化の際に使用する)
     return variable_type;
 }
@@ -581,6 +639,12 @@ function declaratorList(variable_type){
 
     //JavaScriptに識別子を追加
     JavaScriptCode += tokenNums[index].tokenValue+" ";
+
+    //関数の引数の場合
+    if(functionFlag){
+        //関数の引数の名前を格納
+        method[method.length-1].argumentName.push(tokenNums[index].tokenValue);
+    }
 
 
     //変数名を格納
