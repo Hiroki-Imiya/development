@@ -254,6 +254,10 @@ function syntaxAnalysis(){
         }
     }
 
+    console.log("==========Mermaid==========");
+    console.log(classDiagram);
+    console.log("===========================");
+
     //mermaidの再描画
     mermaid_element.removeAttribute('data-processed');
     mermaid_element.innerHTML = classDiagram;
@@ -1887,16 +1891,25 @@ function identifierStatement(){
 
     //.でない場合は前の識別子をJavaScriptに追加
     if(tokenNums[index].tokenNum!=64){
-        //そのときに識別子がフィールド値の場合はthis.を付けて追加
-        for(let i=0;i<fieldIdentifiers.length;i++){
-            if(fieldIdentifiers[i].fieldName==tokenNums[index-1].tokenValue){
-                JavaScriptCode += "this."+tokenNums[index-1].tokenValue;
-                break;
-            }
 
-            //最後まで探してなければそのまま追加
-            if(i==fieldIdentifiers.length-1){
-                JavaScriptCode += tokenNums[index-1].tokenValue;
+        //フィールド値が存在していない場合
+        if(fieldIdentifiers.length==0){
+            //そのまま追加
+            JavaScriptCode += tokenNums[index-1].tokenValue;
+
+        //存在している場合はフィールド値かどうかを判定
+        }else{
+            //そのときに識別子がフィールド値の場合はthis.を付けて追加
+            for(let i=0;i<fieldIdentifiers.length;i++){
+                if(fieldIdentifiers[i].fieldName==tokenNums[index-1].tokenValue){
+                    JavaScriptCode += "this."+tokenNums[index-1].tokenValue;
+                    break;
+                }
+
+                //最後まで探してなければそのまま追加
+                if(i==fieldIdentifiers.length-1){
+                    JavaScriptCode += tokenNums[index-1].tokenValue;
+                }
             }
         }
     }
@@ -2350,6 +2363,8 @@ function operatorStatement(identifier){
                 JavaScriptCode += "changeVariableValue(\""+identifier+"\","+identifier+")";
             }
         }
+    }else{
+        JavaScriptCode += "changeVariableValue(\""+identifier+"\","+identifier+")";
     }
 
 }
