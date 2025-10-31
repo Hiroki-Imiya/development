@@ -203,7 +203,7 @@ const TOKEN_MAP = {
 //処理内容：トークンごとに番号を割り振る
 function identifyToken(tmp_token){
     //トークンマップに存在する場合はその番号を返す
-    if(TOKEN_MAP.hasOwnProperty(tmp_token)){
+    if(tmp_token in TOKEN_MAP){
         return TOKEN_MAP[tmp_token];
     }
     
