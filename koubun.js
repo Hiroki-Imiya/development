@@ -1400,7 +1400,7 @@ function functionDeclaration(){
     let classInitFlag = false;
 
     //{でなければエラー
-    if(tokenNums[index].tokenNum!=57){
+    if(tokenNums[index].tokenNum !== TOKEN.LBRACE){
         throw new Error("{がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
     //Javascriptに現在の行数を格納する関数を追加
@@ -1409,13 +1409,13 @@ function functionDeclaration(){
     index++;
 
     //}が来るまで繰り返す
-    while(tokenNums[index].tokenNum!=58){
+    while(tokenNums[index].tokenNum !== TOKEN.RBRACE){
 
         //フラグを戻す
         classInitFlag = false;
 
         //識別子の場合はクラス名かどうかを確認
-        if(tokenNums[index].tokenNum==1){
+        if(tokenNums[index].tokenNum === TOKEN.IDENTIFIER){
             for(let i=0;i<classes.length;i++){
 
                 //クラス名の場合はクラスの初期化のフラグを立てる
@@ -1430,10 +1430,10 @@ function functionDeclaration(){
         }
 
         //型の場合またはクラスの初期化フラグが立っている場合は変数宣言の関数へ
-        if(tokenNums[index].tokenNum==25 || tokenNums[index].tokenNum==26 || tokenNums[index].tokenNum==27 || tokenNums[index].tokenNum==28 || tokenNums[index].tokenNum==29 || tokenNums[index].tokenNum==30 || tokenNums[index].tokenNum==31 || tokenNums[index].tokenNum==32 || tokenNums[index].tokenNum==33 || tokenNums[index].tokenNum==34 || classInitFlag){
+        if(isTypeToken(tokenNums[index].tokenNum) || classInitFlag){
             fieldDeclaration();
             //;でなければエラー
-            if(tokenNums[index].tokenNum!=69){
+            if(tokenNums[index].tokenNum !== TOKEN.SEMICOLON){
                 throw new Error(";がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
@@ -1475,58 +1475,58 @@ function statement(){
     //トークンによって処理を分岐
     switch (tokenNums[index].tokenNum){
         //ifの場合
-        case 7:
+        case TOKEN.IF:
             index++;
             ifStatement();
             break;
         //whileの場合
-        case 9:
+        case TOKEN.WHILE:
             index++;
             whileStatement();
             break;
         //forの場合
-        case 10:
+        case TOKEN.FOR:
             index++;
             forStatement();
             break;
         //returnの場合
-        case 11:
+        case TOKEN.RETURN:
             index++;
             returnStatement();
             //;でなければエラー
-            if(tokenNums[index].tokenNum!=69){
+            if(tokenNums[index].tokenNum !== TOKEN.SEMICOLON){
                 throw new Error(";がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
             break;
         //breakの場合
-        case 12:
+        case TOKEN.BREAK:
             index++;
             breakStatement();
             //;でなければエラー
-            if(tokenNums[index].tokenNum!=69){
+            if(tokenNums[index].tokenNum !== TOKEN.SEMICOLON){
                 throw new Error(";がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
             break;
 
 
         //superの場合
-        case 43:
+        case TOKEN.SUPER:
             index++;
             superStatement();
             //;でなければエラー
-            if(tokenNums[index].tokenNum!=69){
+            if(tokenNums[index].tokenNum !== TOKEN.SEMICOLON){
                 throw new Error(";がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
             break;
         
         //識別子の場合
-        case 1:
+        case TOKEN.IDENTIFIER:
             index++;
             identifierStatement();
             //;でなければエラー
-            if(tokenNums[index].tokenNum!=69){
+            if(tokenNums[index].tokenNum !== TOKEN.SEMICOLON){
                 throw new Error(";がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
@@ -1555,7 +1555,7 @@ function ifStatement(){
     //ifをJavaScriptに追加
     JavaScriptCode += "if";
     //(でなければエラー
-    if(tokenNums[index].tokenNum!=55){
+    if(tokenNums[index].tokenNum !== TOKEN.LPAREN){
         throw new Error("(がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -1567,7 +1567,7 @@ function ifStatement(){
     comparisonStatement();
 
     //)でなければエラー
-    if(tokenNums[index].tokenNum!=56){
+    if(tokenNums[index].tokenNum !== TOKEN.RPAREN){
         throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -1576,7 +1576,7 @@ function ifStatement(){
     index++;
 
     //{がない場合は次の文の関数へ
-    if(tokenNums[index].tokenNum!=57){
+    if(tokenNums[index].tokenNum !== TOKEN.LBRACE){
         //JavaScriptに{を追加
         JavaScriptCode += "{\n";
         scope++;
@@ -1607,7 +1607,7 @@ function ifStatement(){
         index++;
 
         //}でなければエラー
-        if(tokenNums[index].tokenNum!=58){
+        if(tokenNums[index].tokenNum !== TOKEN.RBRACE){
             throw new Error("}がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
         }
         //Javascirptに現在のスコープの変数を削除する関数を追加
@@ -1624,19 +1624,19 @@ function ifStatement(){
     
     console.log(index);
     //elseがある間繰り返す
-    while(tokenNums[index+1].tokenNum==8){
+    while(tokenNums[index+1].tokenNum === TOKEN.ELSE){
         //JavaScriptにelseを追加
         JavaScriptCode += "else ";
         index=index+2;
         
         //ifの場合
-        if(tokenNums[index].tokenNum==7){
+        if(tokenNums[index].tokenNum === TOKEN.IF){
             index++;
             ifStatement();
             index--;
 
         //{の場合
-        }else if(tokenNums[index].tokenNum==57){
+        }else if(tokenNums[index].tokenNum === TOKEN.LBRACE){
             scope++;
             maxScope =scope;
             //JavaScriptに{を追加
@@ -1647,7 +1647,7 @@ function ifStatement(){
             index++;
 
             //}でなければエラー
-            if(tokenNums[index].tokenNum!=58){
+            if(tokenNums[index].tokenNum !== TOKEN.RBRACE){
                 throw new Error("}がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
             //Javascirptに現在のスコープの変数を削除する関数を追加
@@ -1698,7 +1698,7 @@ function ifStatement(){
 function comparisonStatement(){
 
     //識別子でなければエラー
-    if(tokenNums[index].tokenNum!=1){
+    if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
         throw new Error("識別子がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -1707,7 +1707,7 @@ function comparisonStatement(){
     index++;
 
     //演算子であれば演算子の関数へ
-    if(tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51 || tokenNums[index].tokenNum==52 || tokenNums[index].tokenNum==53 || tokenNums[index].tokenNum==54){
+    if(isOperatorToken(tokenNums[index].tokenNum)){
 
         //演算子を追加
         JavaScriptCode += tokenNums[index].tokenValue+" ";
@@ -1716,7 +1716,7 @@ function comparisonStatement(){
     }
 
     //比較演算子でなければエラー
-    if(tokenNums[index].tokenNum!=61 && tokenNums[index].tokenNum!=62 && tokenNums[index].tokenNum!=70){
+    if(tokenNums[index].tokenNum !== TOKEN.LT && tokenNums[index].tokenNum !== TOKEN.GT && tokenNums[index].tokenNum !== TOKEN.EQUALS){
         throw new Error("比較演算子がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -1724,11 +1724,11 @@ function comparisonStatement(){
     JavaScriptCode += tokenNums[index].tokenValue;
 
     //比較演算子が=の場合
-    if(tokenNums[index].tokenNum==70){
+    if(tokenNums[index].tokenNum === TOKEN.EQUALS){
         
         index++;
         //=でなければエラー
-        if(tokenNums[index].tokenNum!=70){
+        if(tokenNums[index].tokenNum !== TOKEN.EQUALS){
             throw new Error("==でない比較演算子があります.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
         }
 
@@ -1739,7 +1739,7 @@ function comparisonStatement(){
         index++;
 
         //イコールであればJavaScriptに=を追加
-        if(tokenNums[index].tokenNum==70){
+        if(tokenNums[index].tokenNum === TOKEN.EQUALS){
             JavaScriptCode += "=";
         }else {
             index--;
@@ -1752,7 +1752,7 @@ function comparisonStatement(){
     index++;
 
     //識別子または整数でなければエラー
-    if(tokenNums[index].tokenNum!=1 && tokenNums[index].tokenNum!=35){
+    if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER && tokenNums[index].tokenNum !== TOKEN.INTEGER){
         throw new Error("識別子または整数がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -1761,12 +1761,12 @@ function comparisonStatement(){
     index++;
 
     //演算子である間繰り返す
-    while(tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51 || tokenNums[index].tokenNum==52 || tokenNums[index].tokenNum==53 || tokenNums[index].tokenNum==54){
+    while(isOperatorToken(tokenNums[index].tokenNum)){
         //演算子を追加
         JavaScriptCode += tokenNums[index].tokenValue;
         index++;
         //識別子または整数でなければエラー
-        if(tokenNums[index].tokenNum!=1 && tokenNums[index].tokenNum!=35){
+        if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER && tokenNums[index].tokenNum !== TOKEN.INTEGER){
             throw new Error("識別子または整数がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
         }
 
@@ -1776,13 +1776,13 @@ function comparisonStatement(){
     }
 
     //||または&&がある間繰り返す
-    while((tokenNums[index].tokenNum==65 && tokenNums[index+1]==65) || (tokenNums[index].tokenNum==66 && tokenNums[index+1]==66)){
+    while((tokenNums[index].tokenNum === TOKEN.PIPE && tokenNums[index+1] === TOKEN.PIPE) || (tokenNums[index].tokenNum === TOKEN.AMPERSAND && tokenNums[index+1] === TOKEN.AMPERSAND)){
         //||または&&を追加
         JavaScriptCode += tokenNums[index].tokenValue+tokenNums[index+1].tokenValue;
         index++;
         index++;
         //識別子でなければエラー
-        if(tokenNums[index].tokenNum!=1){
+        if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
             throw new Error("識別子がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
         }
 
