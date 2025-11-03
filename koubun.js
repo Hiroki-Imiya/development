@@ -1802,7 +1802,7 @@ function whileStatement(){
     JavaScriptCode += "while";
 
     //(でなければエラー
-    if(tokenNums[index].tokenNum!=55){
+    if(tokenNums[index].tokenNum !== TOKEN.LPAREN){
         throw new Error("(がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -1814,7 +1814,7 @@ function whileStatement(){
     comparisonStatement();
 
     //)でなければエラー
-    if(tokenNums[index].tokenNum!=56){
+    if(tokenNums[index].tokenNum !== TOKEN.RPAREN){
         throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -1823,7 +1823,7 @@ function whileStatement(){
     index++;
 
     //{でなければエラー
-    if(tokenNums[index].tokenNum!=57){
+    if(tokenNums[index].tokenNum !== TOKEN.LBRACE){
         throw new Error("{がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -1834,7 +1834,7 @@ function whileStatement(){
     maxScope =scope;
 
     //}が来るまで繰り返す
-    while(tokenNums[index].tokenNum!=58){
+    while(tokenNums[index].tokenNum !== TOKEN.RBRACE){
         //文の関数
         statement();
         //Javascriptに現在の行数を格納する関数を追加
@@ -1871,18 +1871,18 @@ function forStatement(){
     maxScope =scope;
 
     //(でなければエラー
-    if(tokenNums[index].tokenNum!=55){
+    if(tokenNums[index].tokenNum !== TOKEN.LPAREN){
         throw new Error("(がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
     index++;
 
     //型であれば変数宣言の関数へ
-    if(tokenNums[index].tokenNum==25 || tokenNums[index].tokenNum==26 || tokenNums[index].tokenNum==27 || tokenNums[index].tokenNum==28 || tokenNums[index].tokenNum==29 || tokenNums[index].tokenNum==30 || tokenNums[index].tokenNum==31 || tokenNums[index].tokenNum==32 || tokenNums[index].tokenNum==33 || tokenNums[index].tokenNum==34){
+    if(isTypeToken(tokenNums[index].tokenNum)){
         fieldDeclaration();
 
     //そうでなく識別子であれば演算子の関数へ
-    }else if(tokenNums[index].tokenNum==1){
+    }else if(tokenNums[index].tokenNum === TOKEN.IDENTIFIER){
         index++;
 
         identifierStatement();
@@ -1892,7 +1892,7 @@ function forStatement(){
     JavaScriptCode += ";\n";
 
     //;でなければエラー
-    if(tokenNums[index].tokenNum!=69){
+    if(tokenNums[index].tokenNum !== TOKEN.SEMICOLON){
         throw new Error("for文の;がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -1910,7 +1910,7 @@ function forStatement(){
     comparisonStatement();
 
     //;でなければエラー
-    if(tokenNums[index].tokenNum!=69){
+    if(tokenNums[index].tokenNum !== TOKEN.SEMICOLON){
         throw new Error(";がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -1928,14 +1928,14 @@ function forStatement(){
     forFlag = false;
 
     //)でなければエラー
-    if(tokenNums[index].tokenNum!=56){
+    if(tokenNums[index].tokenNum !== TOKEN.RPAREN){
         throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
     index++;
 
     //{でなければエラー
-    if(tokenNums[index].tokenNum!=57){
+    if(tokenNums[index].tokenNum !== TOKEN.LBRACE){
         throw new Error("{がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
     //JavaScriptに;と改行を追加
@@ -1947,7 +1947,7 @@ function forStatement(){
     index++;
 
     //}が来るまで繰り返す
-    while(tokenNums[index].tokenNum!=58){
+    while(tokenNums[index].tokenNum !== TOKEN.RBRACE){
         //文の関数
         statement();
         //Javascriptに現在の行数を格納する関数を追加
@@ -1983,7 +1983,7 @@ function returnStatement(){
     JavaScriptCode += "return ";
 
     //識別子でなければエラー
-    if(tokenNums[index].tokenNum!=1){
+    if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
         throw new Error("識別子がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -2002,7 +2002,7 @@ function breakStatement(){
     JavaScriptCode += "break";
 
     //;でなければエラー
-    if(tokenNums[index].tokenNum!=69){
+    if(tokenNums[index].tokenNum !== TOKEN.SEMICOLON){
         throw new Error(";がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -2026,38 +2026,19 @@ function identifierStatement(){
     tmp_Stirng = tokenNums[index-1].tokenValue;
 
     //.でない場合は前の識別子をJavaScriptに追加
-    if(tokenNums[index].tokenNum!=64){
-
-        //フィールド値が存在していない場合
-        if(fieldIdentifiers.length==0){
-            //そのまま追加
-            JavaScriptCode += tokenNums[index-1].tokenValue;
-
-        //存在している場合はフィールド値かどうかを判定
-        }else{
-            //そのときに識別子がフィールド値の場合はthis.を付けて追加
-            for(let i=0;i<fieldIdentifiers.length;i++){
-                if(fieldIdentifiers[i].fieldName==tokenNums[index-1].tokenValue){
-                    JavaScriptCode += "this."+tokenNums[index-1].tokenValue;
-                    break;
-                }
-
-                //最後まで探してなければそのまま追加
-                if(i==fieldIdentifiers.length-1){
-                    JavaScriptCode += tokenNums[index-1].tokenValue;
-                }
-            }
-        }
+    if(tokenNums[index].tokenNum !== TOKEN.DOT){
+        //フィールド値かどうかを判定して追加
+        JavaScriptCode += formatIdentifier(tokenNums[index-1].tokenValue);
     }
 
     //.がある間繰り返す
-    while(tokenNums[index].tokenNum==64){
+    while(tokenNums[index].tokenNum === TOKEN.DOT){
         //JavaScriptに.を追加
         tmp_Stirng += ".";
         index++;
 
         //printの場合
-        if(tokenNums[index].tokenNum==2){
+        if(tokenNums[index].tokenNum === TOKEN.PRINT){
             index++;
             printStatement();
 
@@ -2065,7 +2046,7 @@ function identifierStatement(){
             break;
         
         //printlnの場合
-        }else if(tokenNums[index].tokenNum==3){
+        }else if(tokenNums[index].tokenNum === TOKEN.PRINTLN){
             index++;
             printlnStatement();
 
@@ -2073,7 +2054,7 @@ function identifierStatement(){
             break;
 
         //printfの場合
-        }else if(tokenNums[index].tokenNum==4){
+        }else if(tokenNums[index].tokenNum === TOKEN.PRINTF){
             index++;
             printfStatement();
 
@@ -2082,7 +2063,7 @@ function identifierStatement(){
         }
 
         //識別子でなければエラー
-        if(tokenNums[index].tokenNum!=1){
+        if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
             throw new Error("識別子がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
         }
         tmp_Stirng += tokenNums[index].tokenValue;
@@ -2090,7 +2071,7 @@ function identifierStatement(){
     }
 
     //(であれば関数呼び出しの関数
-    if(tokenNums[index].tokenNum==55){
+    if(tokenNums[index].tokenNum === TOKEN.LPAREN){
 
         //ジェネレーター関数用に関数の情報を保存する変数の宣言を追加
         let functionInfo="tmp_"+tokenNums[index-1].tokenValue;
@@ -2107,7 +2088,7 @@ function identifierStatement(){
 
 
     //イコールまたは＋またはマイナスがあれば次のトークンへ
-    if(tokenNums[index].tokenNum==70 || tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51){
+    if(tokenNums[index].tokenNum === TOKEN.EQUALS || tokenNums[index].tokenNum === TOKEN.PLUS || tokenNums[index].tokenNum === TOKEN.MINUS){
 
         //識別子を保存
         let identifier = tokenNums[index-1].tokenValue;
@@ -2130,37 +2111,17 @@ function printStatement(){
     JavaScriptCode += "message.value+=";
 
     //(でなければエラー
-    if(tokenNums[index].tokenNum!=55){
+    if(tokenNums[index].tokenNum !== TOKEN.LPAREN){
         throw new Error("(がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
     index++;
 
     //識別子または文字列であれば次のトークンへ
-    if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==37){
+    if(tokenNums[index].tokenNum === TOKEN.IDENTIFIER || tokenNums[index].tokenNum === TOKEN.STRING_LITERAL){
         //JavaScriptに識別子または文字列を追加
         //識別子の場合
-        if(tokenNums[index].tokenNum==1){
-
-            //フィールド値が存在していない場合
-            if(fieldIdentifiers.length==0){
-                //そのまま追加
-                JavaScriptCode += tokenNums[index].tokenValue;
-            
-            //存在している場合はフィールド値かどうかを判定
-            }else{
-                for(let i=0;i<fieldIdentifiers.length;i++){
-                    //フィールド値の場合はthis.を付けて追加
-                    if(fieldIdentifiers[i].fieldName==tokenNums[index].tokenValue){
-                        JavaScriptCode += "this."+tokenNums[index].tokenValue;
-                        break;
-                    }
-
-                    //最後まで探してなければそのまま追加
-                    if(i==fieldIdentifiers.length-1){
-                        JavaScriptCode += tokenNums[index].tokenValue;
-                    }
-                }
-            }
+        if(tokenNums[index].tokenNum === TOKEN.IDENTIFIER){
+            JavaScriptCode += formatIdentifier(tokenNums[index].tokenValue);
             
         //文字列の場合""を追加
         }else{
@@ -2170,11 +2131,11 @@ function printStatement(){
     }
 
     //演算子があれば演算子の関数へ
-    if(tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51 || tokenNums[index].tokenNum==52 || tokenNums[index].tokenNum==53 || tokenNums[index].tokenNum==54){
+    if(isOperatorToken(tokenNums[index].tokenNum)){
         JavaScriptCode += tokenNums[index].tokenValue;
         index++;
         //文字列であれば文字列の連結として追加
-        if(tokenNums[index].tokenNum==37){
+        if(tokenNums[index].tokenNum === TOKEN.STRING_LITERAL){
             JavaScriptCode += "\""+tokenNums[index].tokenValue+"\"";
             index++;
         }else{
@@ -2183,7 +2144,7 @@ function printStatement(){
     }
 
     //)でなければエラー
-    if(tokenNums[index].tokenNum!=56){
+    if(tokenNums[index].tokenNum !== TOKEN.RPAREN){
         throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
     index++;
@@ -2198,38 +2159,18 @@ function printlnStatement(){
     //JavaScriptにidがmessageの内容に加えるように追加
     JavaScriptCode += "message.value+=";
     //(でなければエラー
-    if(tokenNums[index].tokenNum!=55){
+    if(tokenNums[index].tokenNum !== TOKEN.LPAREN){
         throw new Error("(がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
     index++;
 
     //識別子または文字列であれば次のトークンへ
-    if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==37){
+    if(tokenNums[index].tokenNum === TOKEN.IDENTIFIER || tokenNums[index].tokenNum === TOKEN.STRING_LITERAL){
         //JavaScriptに識別子または文字列を追加
         //識別子の場合
-        if(tokenNums[index].tokenNum==1){
-
-            //フィールド値が存在していない場合
-            if(fieldIdentifiers.length==0){
-                //そのまま追加
-                JavaScriptCode += tokenNums[index].tokenValue;
-            
-            //存在している場合はフィールド値かどうかを判定
-            }else{
-                for(let i=0;i<fieldIdentifiers.length;i++){
-                    //フィールド値の場合はthis.を付けて追加
-                    if(fieldIdentifiers[i].fieldName==tokenNums[index].tokenValue){
-                        JavaScriptCode += "this."+tokenNums[index].tokenValue;
-                        break;
-                    }
-
-                    //最後まで探してなければそのまま追加
-                    if(i==fieldIdentifiers.length-1){
-                        JavaScriptCode += tokenNums[index].tokenValue;
-                    }
-                }
-            }
+        if(tokenNums[index].tokenNum === TOKEN.IDENTIFIER){
+            JavaScriptCode += formatIdentifier(tokenNums[index].tokenValue);
             
         //文字列の場合""を追加
         }else{
@@ -2239,11 +2180,11 @@ function printlnStatement(){
     }
 
     //演算子の場合
-    if(tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51 || tokenNums[index].tokenNum==52 || tokenNums[index].tokenNum==53 || tokenNums[index].tokenNum==54){
+    if(isOperatorToken(tokenNums[index].tokenNum)){
         JavaScriptCode += tokenNums[index].tokenValue;
         index++;
         //文字列であれば文字列の連結として追加
-        if(tokenNums[index].tokenNum==37){
+        if(tokenNums[index].tokenNum === TOKEN.STRING_LITERAL){
             JavaScriptCode += "\""+tokenNums[index].tokenValue+"\"";
             index++;
         }else{
@@ -2252,7 +2193,7 @@ function printlnStatement(){
     }
 
     //)でなければエラー
-    if(tokenNums[index].tokenNum!=56){
+    if(tokenNums[index].tokenNum !== TOKEN.RPAREN){
         throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
     index++;
@@ -2393,36 +2334,19 @@ function printfStatement(){
 function operatorStatement(identifier){
 
     //識別子または整数であれば次のトークンへ
-    if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==35){
+    if(tokenNums[index].tokenNum === TOKEN.IDENTIFIER || tokenNums[index].tokenNum === TOKEN.INTEGER){
         //JavaScriptに整数の場合はそのまま追加
-        if(tokenNums[index].tokenNum==35){
+        if(tokenNums[index].tokenNum === TOKEN.INTEGER){
             JavaScriptCode += tokenNums[index].tokenValue;
         //JavaScriptに識別子の場合はフィールド値かどうかを判定
         }else{
-            //フィールド値が存在していない場合
-            if(fieldIdentifiers.length==0){
-                //そのまま追加
-                JavaScriptCode += tokenNums[index].tokenValue;
-            }else{
-                for(let i=0;i<fieldIdentifiers.length;i++){
-                    //フィールド値の場合はthis.を付けて追加
-                    if(fieldIdentifiers[i].fieldName==tokenNums[index].tokenValue){
-                        JavaScriptCode += "this."+tokenNums[index].tokenValue;
-                        break;
-                    }
-
-                    //最後まで探してなければそのまま追加
-                    if(i==fieldIdentifiers.length-1){
-                        JavaScriptCode += tokenNums[index].tokenValue;
-                    }
-                }
-            }
+            JavaScriptCode += formatIdentifier(tokenNums[index].tokenValue);
         }
 
         index++;
     }
     //(であれば関数呼び出しの関数
-    if(tokenNums[index].tokenNum==55){
+    if(tokenNums[index].tokenNum === TOKEN.LPAREN){
 
         //JavaScriptに(を追加
         JavaScriptCode += "(";
@@ -2431,43 +2355,26 @@ function operatorStatement(identifier){
     }
 
     //演算子である間繰り返す
-    while(tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51 || tokenNums[index].tokenNum==52 || tokenNums[index].tokenNum==53 || tokenNums[index].tokenNum==54){
+    while(isOperatorToken(tokenNums[index].tokenNum)){
         //JavaScriptに演算子を追加
         JavaScriptCode += tokenNums[index].tokenValue;
         //インクリメント用の変数
         let increment_index=tokenNums[index].tokenNum;
         index++;
         //識別子または整数であれば次のトークンへ
-        if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==35){
+        if(tokenNums[index].tokenNum === TOKEN.IDENTIFIER || tokenNums[index].tokenNum === TOKEN.INTEGER){
             //JavaScriptに整数の場合はそのまま追加
-        if(tokenNums[index].tokenNum==35){
-            JavaScriptCode += tokenNums[index].tokenValue;
-        //JavaScriptに識別子の場合はフィールド値かどうかを判定
-        }else{
-            //フィールド値が存在していない場合
-            if(fieldIdentifiers.length==0){
-                //そのまま追加
+            if(tokenNums[index].tokenNum === TOKEN.INTEGER){
                 JavaScriptCode += tokenNums[index].tokenValue;
+            //JavaScriptに識別子の場合はフィールド値かどうかを判定
             }else{
-                for(let i=0;i<fieldIdentifiers.length;i++){
-                    //フィールド値の場合はthis.を付けて追加
-                    if(fieldIdentifiers[i].fieldName==tokenNums[index].tokenValue){
-                        JavaScriptCode += "this."+tokenNums[index].tokenValue;
-                        break;
-                    }
-
-                    //最後まで探してなければそのまま追加
-                    if(i==fieldIdentifiers.length-1){
-                        JavaScriptCode += tokenNums[index].tokenValue;
-                    }
-                }
+                JavaScriptCode += formatIdentifier(tokenNums[index].tokenValue);
             }
-        }
             index++;
         }
 
         //インクリメントが++または--の場合は次のトークンへ
-        if((increment_index==50 && tokenNums[index].tokenNum==50) || (increment_index==51 && tokenNums[index].tokenNum==51)){
+        if((increment_index === TOKEN.PLUS && tokenNums[index].tokenNum === TOKEN.PLUS) || (increment_index === TOKEN.MINUS && tokenNums[index].tokenNum === TOKEN.MINUS)){
             
             //JavaScriptに++または--を追加
             JavaScriptCode += tokenNums[index].tokenValue;
@@ -2511,20 +2418,20 @@ function operatorStatement(identifier){
 function functionCallStatement(functionInfo){
 
     //識別子または整数または文字列であれば次のトークンへ
-    if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==35 || tokenNums[index].tokenNum==37){
+    if(tokenNums[index].tokenNum === TOKEN.IDENTIFIER || tokenNums[index].tokenNum === TOKEN.INTEGER || tokenNums[index].tokenNum === TOKEN.STRING_LITERAL){
         //JavaScriptに識別子または整数または文字列を追加
         JavaScriptCode += tokenNums[index].tokenValue;
         index++;
     }
 
     //,がある間繰り返す
-    while(tokenNums[index].tokenNum==63){
+    while(tokenNums[index].tokenNum === TOKEN.COMMA){
         //JavaScriptに,を追加
         JavaScriptCode += ",";
         index++;
 
         //識別子または整数または文字列であれば次のトークンへ
-        if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==35 || tokenNums[index].tokenNum==37){
+        if(tokenNums[index].tokenNum === TOKEN.IDENTIFIER || tokenNums[index].tokenNum === TOKEN.INTEGER || tokenNums[index].tokenNum === TOKEN.STRING_LITERAL){
             //JavaScriptに識別子または整数または文字列を追加
             JavaScriptCode += tokenNums[index].tokenValue;
             index++;
@@ -2532,7 +2439,7 @@ function functionCallStatement(functionInfo){
     }
 
     //)でなければエラー
-    if(tokenNums[index].tokenNum!=56){
+    if(tokenNums[index].tokenNum !== TOKEN.RPAREN){
         throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -2562,7 +2469,7 @@ function superStatement(){
     JavaScriptCode += "super";
 
     //.(ドット)でなければエラー
-    if(tokenNums[index].tokenNum!=64){
+    if(tokenNums[index].tokenNum !== TOKEN.DOT){
         throw new Error(".(ドット)がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -2571,7 +2478,7 @@ function superStatement(){
     index++;
 
     //識別子でなければエラー
-    if(tokenNums[index].tokenNum!=1){
+    if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
         throw new Error("識別子がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -2580,7 +2487,7 @@ function superStatement(){
     index++;
 
     //(でなければエラー
-    if(tokenNums[index].tokenNum!=55){
+    if(tokenNums[index].tokenNum !== TOKEN.LPAREN){
         throw new Error("(がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -2589,20 +2496,20 @@ function superStatement(){
     index++;
 
     //識別子または整数であれば次のトークンへ
-    if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==35){
+    if(tokenNums[index].tokenNum === TOKEN.IDENTIFIER || tokenNums[index].tokenNum === TOKEN.INTEGER){
         //JavaScriptに識別子または整数を追加
         JavaScriptCode += tokenNums[index].tokenValue;
         index++;
     }
 
     //,がある間繰り返す
-    while(tokenNums[index].tokenNum==63){
+    while(tokenNums[index].tokenNum === TOKEN.COMMA){
         //JavaScriptに,を追加
         JavaScriptCode += ",";
         index++;
 
         //識別子または整数であれば次のトークンへ
-        if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==35){
+        if(tokenNums[index].tokenNum === TOKEN.IDENTIFIER || tokenNums[index].tokenNum === TOKEN.INTEGER){
             //JavaScriptに識別子または整数を追加
             JavaScriptCode += tokenNums[index].tokenValue;
             index++;
@@ -2610,7 +2517,7 @@ function superStatement(){
     }
 
     //)でなければエラー
-    if(tokenNums[index].tokenNum!=56){
+    if(tokenNums[index].tokenNum !== TOKEN.RPAREN){
         throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
