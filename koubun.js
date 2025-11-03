@@ -180,10 +180,11 @@ function formatIdentifier(identifierName) {
 }
 
 // ヘルパー関数: 変数を変数表に追加するコードを生成して適切な場所に追加
+// この関数は int, byte, double, char, string型のみを処理します
 function addVariableToTable(variableName, variableType, isArray) {
     const typeStr = typeTokenToString(variableType);
-    if (!typeStr && variableType !== TOKEN.IDENTIFIER) {
-        // 処理不要な型（short, long, float, boolean, ArrayList等）
+    if (!typeStr) {
+        // typeTokenToStringがサポートしていない型は処理しない
         return;
     }
     
@@ -192,19 +193,16 @@ function addVariableToTable(variableName, variableType, isArray) {
     
     if (isArray) {
         defaultValue = '[]';
-    } else if (variableType === TOKEN.INT || variableType === TOKEN.BYTE || 
-               variableType === TOKEN.SHORT || variableType === TOKEN.LONG) {
+    } else if (variableType === TOKEN.INT || variableType === TOKEN.BYTE) {
         defaultValue = '0';
-    } else if (variableType === TOKEN.FLOAT || variableType === TOKEN.DOUBLE) {
+    } else if (variableType === TOKEN.DOUBLE) {
         defaultValue = '0.0';
-    } else if (variableType === TOKEN.BOOLEAN) {
-        defaultValue = 'false';
     } else if (variableType === TOKEN.CHAR) {
         defaultValue = "'a'";
     } else if (variableType === TOKEN.STRING) {
         defaultValue = '""';
     } else {
-        return; // 識別子型の場合は別処理
+        return; // その他の型は別処理
     }
     
     const code = `addVariable("${variableName}","${typeStr}${arrayStr}",${defaultValue},${scope});\n`;
@@ -1597,7 +1595,7 @@ function comparisonStatement(){
     }
 
     //||または&&がある間繰り返す
-    while((tokenNums[index].tokenNum === TOKEN.PIPE && tokenNums[index+1] === TOKEN.PIPE) || (tokenNums[index].tokenNum === TOKEN.AMPERSAND && tokenNums[index+1] === TOKEN.AMPERSAND)){
+    while((tokenNums[index].tokenNum === TOKEN.PIPE && tokenNums[index+1].tokenNum === TOKEN.PIPE) || (tokenNums[index].tokenNum === TOKEN.AMPERSAND && tokenNums[index+1].tokenNum === TOKEN.AMPERSAND)){
         //||または&&を追加
         JavaScriptCode += tokenNums[index].tokenValue+tokenNums[index+1].tokenValue;
         index++;
