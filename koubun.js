@@ -1,5 +1,63 @@
 /*入力されたプログラムの構文解析を行うJavaScript */
 
+// トークン番号の定数定義
+const TOKEN = {
+    IDENTIFIER: 1,
+    PRINT: 2,
+    PRINTLN: 3,
+    PRINTF: 4,
+    IMPORT: 5,
+    CLASS: 6,
+    IF: 7,
+    ELSE: 8,
+    WHILE: 9,
+    FOR: 10,
+    RETURN: 11,
+    BREAK: 12,
+    NEW: 13,
+    PUBLIC: 14,
+    PRIVATE: 15,
+    STATIC: 17,
+    EXTENDS: 22,
+    INT: 25,
+    BYTE: 26,
+    SHORT: 27,
+    LONG: 28,
+    FLOAT: 29,
+    DOUBLE: 30,
+    BOOLEAN: 31,
+    CHAR: 32,
+    STRING: 33,
+    ARRAYLIST: 34,
+    INTEGER: 35,
+    REAL: 36,
+    STRING_LITERAL: 37,
+    TRUE: 38,
+    FALSE: 39,
+    VOID: 40,
+    CHAR_LITERAL: 41,
+    SUPER: 43,
+    PLUS: 50,
+    MINUS: 51,
+    MULTIPLY: 52,
+    DIVIDE: 53,
+    MODULO: 54,
+    LPAREN: 55,
+    RPAREN: 56,
+    LBRACE: 57,
+    RBRACE: 58,
+    LBRACKET: 59,
+    RBRACKET: 60,
+    LT: 61,
+    GT: 62,
+    COMMA: 63,
+    DOT: 64,
+    PIPE: 65,
+    AMPERSAND: 66,
+    SEMICOLON: 69,
+    EQUALS: 70
+};
+
 //関数の引数かどうかのフラグ
 let functionFlag = false;
 
@@ -74,6 +132,84 @@ let classRelation = [];
 //持っているクラス名:className
 //インスタンス化されているクラス名:relation
 let mutualRelation = [];
+
+// ヘルパー関数: トークン番号が型かどうかをチェック
+function isTypeToken(tokenNum) {
+    return tokenNum === TOKEN.INT || tokenNum === TOKEN.BYTE || 
+           tokenNum === TOKEN.SHORT || tokenNum === TOKEN.LONG || 
+           tokenNum === TOKEN.FLOAT || tokenNum === TOKEN.DOUBLE || 
+           tokenNum === TOKEN.BOOLEAN || tokenNum === TOKEN.CHAR || 
+           tokenNum === TOKEN.STRING || tokenNum === TOKEN.ARRAYLIST;
+}
+
+// ヘルパー関数: トークン番号が演算子かどうかをチェック
+function isOperatorToken(tokenNum) {
+    return tokenNum === TOKEN.PLUS || tokenNum === TOKEN.MINUS || 
+           tokenNum === TOKEN.MULTIPLY || tokenNum === TOKEN.DIVIDE || 
+           tokenNum === TOKEN.MODULO;
+}
+
+// ヘルパー関数: 型番号を文字列に変換
+function typeTokenToString(tokenNum) {
+    const typeMap = {
+        [TOKEN.INT]: 'int',
+        [TOKEN.BYTE]: 'byte',
+        [TOKEN.SHORT]: 'short',
+        [TOKEN.LONG]: 'long',
+        [TOKEN.FLOAT]: 'float',
+        [TOKEN.DOUBLE]: 'double',
+        [TOKEN.BOOLEAN]: 'boolean',
+        [TOKEN.CHAR]: 'char',
+        [TOKEN.STRING]: 'String'
+    };
+    return typeMap[tokenNum] || '';
+}
+
+// ヘルパー関数: 識別子がフィールドかどうかをチェックし、適切な形式で返す
+function formatIdentifier(identifierName) {
+    if (fieldIdentifiers.length === 0) {
+        return identifierName;
+    }
+    
+    for (let i = 0; i < fieldIdentifiers.length; i++) {
+        if (fieldIdentifiers[i].fieldName === identifierName) {
+            return "this." + identifierName;
+        }
+    }
+    return identifierName;
+}
+
+// ヘルパー関数: 変数を変数表に追加するコードを生成
+function generateAddVariableCode(variableName, variableType, arrayFlag) {
+    const typeStr = typeTokenToString(variableType);
+    const arrayStr = arrayFlag ? '[]' : '';
+    let defaultValue;
+    
+    if (arrayFlag) {
+        defaultValue = '[]';
+    } else if (variableType === TOKEN.INT || variableType === TOKEN.BYTE || 
+               variableType === TOKEN.SHORT || variableType === TOKEN.LONG) {
+        defaultValue = '0';
+    } else if (variableType === TOKEN.FLOAT || variableType === TOKEN.DOUBLE) {
+        defaultValue = '0.0';
+    } else if (variableType === TOKEN.BOOLEAN) {
+        defaultValue = 'false';
+    } else if (variableType === TOKEN.CHAR) {
+        defaultValue = "'a'";
+    } else if (variableType === TOKEN.STRING) {
+        defaultValue = '""';
+    } else {
+        return ''; // 識別子型の場合は別処理
+    }
+    
+    const code = `addVariable("${variableName}","${typeStr}${arrayStr}",${defaultValue},${scope});\n`;
+    
+    if (classFieldFlag) {
+        return { target: 'field', code: code };
+    } else {
+        return { target: 'js', code: code };
+    }
+}
 
 //構文解析を行う関数
 //引数：なし
@@ -281,13 +417,13 @@ function program(){
     //トークンによって処理を分岐
     switch (tokenNums[index].tokenNum){
         //importの場合
-        case 5:
+        case TOKEN.IMPORT:
             index++;
             importStatement();
             break;
         //アクセス修飾子の場合
-        case 14:
-        case 15:
+        case TOKEN.PUBLIC:
+        case TOKEN.PRIVATE:
             index++;
             //クラス定義の関数
             classDefinition();
@@ -302,23 +438,23 @@ function program(){
 function importStatement(){
 
     //識別子でなければエラー
-    if(tokenNums[index].tokenNum!=1){
+    if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
         throw new Error("importの後に識別子がありません");
     }
     index++;
 
     //トークンが.の間繰り返す
-    while(tokenNums[index].tokenNum==64){
+    while(tokenNums[index].tokenNum === TOKEN.DOT){
         index++;
         //識別子またはArrayListでなければエラー
-        if(tokenNums[index].tokenNum!=1 && tokenNums[index].tokenNum!=34){
+        if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER && tokenNums[index].tokenNum !== TOKEN.ARRAYLIST){
             throw new Error("import文の.の後に識別子またはArrayListがありません");
         }
         index++;
     }
 
     //;でなければエラー
-    if(tokenNums[index].tokenNum!=69){
+    if(tokenNums[index].tokenNum !== TOKEN.SEMICOLON){
         throw new Error("import文が;で終わっていません"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -330,7 +466,7 @@ function importStatement(){
 function classDefinition(){
 
     //クラスでなければエラー
-    if(tokenNums[index].tokenNum!=6){
+    if(tokenNums[index].tokenNum !== TOKEN.CLASS){
         throw new Error("classがありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -339,7 +475,7 @@ function classDefinition(){
     index++;
 
     //クラス名でなければエラー
-    if(tokenNums[index].tokenNum!=1){
+    if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
         throw new Error("クラス名がありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
     //JavaScriptにクラス名を追加
@@ -350,13 +486,13 @@ function classDefinition(){
     index++;
 
     //extendsがある場合
-    if(tokenNums[index].tokenNum==22){
+    if(tokenNums[index].tokenNum === TOKEN.EXTENDS){
         //JavaScriptにextendsを追加
         JavaScriptCode += "extends ";
         index++;
 
         //識別子でなければエラー
-        if(tokenNums[index].tokenNum!=1){
+        if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
             throw new Error("extendsの後に識別子がありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
         }
 
@@ -369,7 +505,7 @@ function classDefinition(){
     }
 
     //{でなければエラー
-    if(tokenNums[index].tokenNum!=57){
+    if(tokenNums[index].tokenNum !== TOKEN.LBRACE){
         throw new Error("{がありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -380,14 +516,14 @@ function classDefinition(){
     let variable_type;
 
     //}が来るまで繰り返す
-    while(tokenNums[index].tokenNum!=58){
+    while(tokenNums[index].tokenNum !== TOKEN.RBRACE){
         //アクセス修飾子がある場合次のトークンへ
-        if(tokenNums[index].tokenNum==14 || tokenNums[index].tokenNum==15){
+        if(tokenNums[index].tokenNum === TOKEN.PUBLIC || tokenNums[index].tokenNum === TOKEN.PRIVATE){
             //publicの場合
-            if(tokenNums[index].tokenNum==14){
+            if(tokenNums[index].tokenNum === TOKEN.PUBLIC){
                 publicFlag = true;
             //privateの場合
-            }else if(tokenNums[index].tokenNum==15){
+            }else if(tokenNums[index].tokenNum === TOKEN.PRIVATE){
                 publicFlag = false;
             }
             index++;
@@ -396,7 +532,7 @@ function classDefinition(){
         }
 
         //他の修飾子がある場合次のトークンへ
-        if(tokenNums[index].tokenNum==17){
+        if(tokenNums[index].tokenNum === TOKEN.STATIC){
             JavaScriptCode += "static ";
             staticFlag = true;
             index++;
@@ -405,14 +541,14 @@ function classDefinition(){
         }
 
         //voidであれば次のトークンへ
-        if(tokenNums[index].tokenNum==40){
+        if(tokenNums[index].tokenNum === TOKEN.VOID){
             index++;
 
         //型であれば型の関数へ
         }else{
 
             //2個先のトークンが(でなれけばフィールド宣言なのでフラグを立てる
-            if(tokenNums[index+2].tokenNum!=55){
+            if(tokenNums[index+2].tokenNum !== TOKEN.LPAREN){
                 classFieldFlag = true;
             //戻り値のフラグを立てる
             }else{
@@ -429,7 +565,7 @@ function classDefinition(){
         let tmp_JavaScriptCode="";
 
         //識別子でなければエラー
-        if(tokenNums[index].tokenNum!=1){
+        if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
             throw new Error("関数名がありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
         }
 
@@ -453,14 +589,14 @@ function classDefinition(){
         index++;
 
         //(でなければフィールド宣言として宣言子の並びへ
-        if(tokenNums[index].tokenNum!=55){
+        if(tokenNums[index].tokenNum !== TOKEN.LPAREN){
             index--;
             declaratorList(variable_type);
 
             classFieldFlag = false;
 
             //;でなければエラー
-            if(tokenNums[index].tokenNum!=69){
+            if(tokenNums[index].tokenNum !== TOKEN.SEMICOLON){
                 throw new Error("フィールド宣言または変数宣言が;で終わっていません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
             index++;
@@ -487,7 +623,7 @@ function classDefinition(){
             index++;
 
             //voidであれば次のトークンへ
-            if(tokenNums[index].tokenNum==40){
+            if(tokenNums[index].tokenNum === TOKEN.VOID){
                 index++;
 
                 //JavaScriptに)を追加
@@ -501,13 +637,13 @@ function classDefinition(){
             }
 
             //)でなければエラー
-            if(tokenNums[index].tokenNum!=56){
+            if(tokenNums[index].tokenNum !== TOKEN.RPAREN){
                 throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
             index++;
 
             //;でなければ関数宣言の関数へ
-            if(tokenNums[index].tokenNum!=69){
+            if(tokenNums[index].tokenNum !== TOKEN.SEMICOLON){
                 functionDeclaration();
                 index++;
             }else {
@@ -538,7 +674,7 @@ function type(){
     let variable_type;
 
     //識別子の場合はクラス名かどうかを確認
-    if(tokenNums[index].tokenNum==1){
+    if(tokenNums[index].tokenNum === TOKEN.IDENTIFIER){
         //クラスが登場していない場合はエラー
         if(classes.length==0){
             throw new Error("クラスがありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
@@ -553,7 +689,7 @@ function type(){
         }
 
     //型でなければエラー
-    }else if(tokenNums[index].tokenNum!=25 && tokenNums[index].tokenNum!=26 && tokenNums[index].tokenNum!=27 && tokenNums[index].tokenNum!=28 && tokenNums[index].tokenNum!=29 && tokenNums[index].tokenNum!=30 && tokenNums[index].tokenNum!=31 && tokenNums[index].tokenNum!=32 && tokenNums[index].tokenNum!=33 && tokenNums[index].tokenNum!=34){
+    }else if(!isTypeToken(tokenNums[index].tokenNum)){
         throw new Error("型がありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
     //型を格納
@@ -566,9 +702,9 @@ function type(){
     index++;
 
     //[があれば次のトークンへ
-    if(tokenNums[index].tokenNum==59){
+    if(tokenNums[index].tokenNum === TOKEN.LBRACKET){
         index++;
-        if(tokenNums[index].tokenNum!=60){
+        if(tokenNums[index].tokenNum !== TOKEN.RBRACKET){
             throw new Error("]で終わっていません"+tokenNums[index].tokenNum+"配列の添字:"+index);
         }
         index++;
@@ -578,10 +714,10 @@ function type(){
     }
 
     //型がArrayListの場合は<>がある
-    if(tokenNums[index].tokenNum==61){
+    if(tokenNums[index].tokenNum === TOKEN.LT){
         index++;
         type();
-        if(tokenNums[index].tokenNum!=62){
+        if(tokenNums[index].tokenNum !== TOKEN.GT){
             throw new Error(">で終わっていません"+tokenNums[index].tokenNum+"配列の添字:"+index);
         }
         index++;
