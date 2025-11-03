@@ -298,25 +298,10 @@ function syntaxAnalysis(){
                     }
 
                     //型を追加
-                    if(fieldIdentifiers[j].type==25){
-                        classDiagram += 'int ';
-                    }else if(fieldIdentifiers[j].type==26){
-                        classDiagram += 'byte ';
-                    }else if(fieldIdentifiers[j].type==27){
-                        classDiagram += 'short ';
-                    }else if(fieldIdentifiers[j].type==28){
-                        classDiagram += 'long ';
-                    }else if(fieldIdentifiers[j].type==29){
-                        classDiagram += 'float ';
-                    }else if(fieldIdentifiers[j].type==30){
-                        classDiagram += 'double ';
-                    }else if(fieldIdentifiers[j].type==31){
-                        classDiagram += 'boolean ';
-                    }else if(fieldIdentifiers[j].type==32){
-                        classDiagram += 'char ';
-                    }else if(fieldIdentifiers[j].type==33){
-                        classDiagram += 'String ';
-                    }else if(fieldIdentifiers[j].type==1){
+                    const typeStr = typeTokenToString(fieldIdentifiers[j].type);
+                    if (typeStr) {
+                        classDiagram += typeStr + ' ';
+                    } else if(fieldIdentifiers[j].type === TOKEN.IDENTIFIER){
                         classDiagram += fieldIdentifiers[j].type+' ';
                     }
 
@@ -355,16 +340,9 @@ function syntaxAnalysis(){
 
                     //返り値の型を追加
                     classDiagram += ' ';
-                    if(method[j].returnType==25){
-                        classDiagram += 'int';
-                    }else if(method[j].returnType==30){
-                        classDiagram += 'double';
-                    }else if(method[j].returnType==31){
-                        classDiagram += 'boolean';
-                    }else if(method[j].returnType==32){
-                        classDiagram += 'char';
-                    }else if(method[j].returnType==33){
-                        classDiagram += 'String';
+                    const returnTypeStr = typeTokenToString(method[j].returnType);
+                    if (returnTypeStr) {
+                        classDiagram += returnTypeStr;
                     }
 
                     //静的であれば下線を引くために$をつける
@@ -768,16 +746,16 @@ function declaratorList(variable_type){
     index++;
 
     //イコールがあれば次のトークンへ
-    if(tokenNums[index].tokenNum==70){
+    if(tokenNums[index].tokenNum === TOKEN.EQUALS){
 
         //JavaScriptに=を追加
         JavaScriptCode += "=";
         index++;
 
         //型がintの場合
-        if(variable_type==25){
+        if(variable_type === TOKEN.INT){
             //整数または識別子でなければエラー
-            if(tokenNums[index].tokenNum!=35 && tokenNums[index].tokenNum!=1){
+            if(tokenNums[index].tokenNum !== TOKEN.INTEGER && tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
                 throw new Error("int型に整数がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
@@ -787,14 +765,14 @@ function declaratorList(variable_type){
             index++;
 
             //演算子である間繰り返す
-            while(tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51 || tokenNums[index].tokenNum==52 || tokenNums[index].tokenNum==53 || tokenNums[index].tokenNum==54){
+            while(isOperatorToken(tokenNums[index].tokenNum)){
                 //演算子を追加
                 JavaScriptCode += tokenNums[index].tokenValue;
                 
                 index++;
 
                 //整数または識別子でなければエラー
-                if(tokenNums[index].tokenNum!=35 && tokenNums[index].tokenNum!=1){
+                if(tokenNums[index].tokenNum !== TOKEN.INTEGER && tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
                     throw new Error("int型に整数以外の計算をしようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
                 }
                 //JavaScriptに整数を追加
@@ -803,9 +781,9 @@ function declaratorList(variable_type){
             }
 
         //型がbyteの場合
-        }else if(variable_type==26){    
+        }else if(variable_type === TOKEN.BYTE){    
             //整数でなければエラー
-            if(tokenNums[index].tokenNum!=35){
+            if(tokenNums[index].tokenNum !== TOKEN.INTEGER){
                 throw new Error("byte型に整数がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
             //JavaScriptに整数を追加
@@ -813,13 +791,13 @@ function declaratorList(variable_type){
             index++;
             
             //演算子である間繰り返す
-            while(tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51 || tokenNums[index].tokenNum==52 || tokenNums[index].tokenNum==53 || tokenNums[index].tokenNum==54){
+            while(isOperatorToken(tokenNums[index].tokenNum)){
                 //演算子を追加
                 JavaScriptCode += tokenNums[index].tokenValue;
                 index++;
 
                 //整数でなければエラー
-                if(tokenNums[index].tokenNum!=35){
+                if(tokenNums[index].tokenNum !== TOKEN.INTEGER){
                     throw new Error("byte型に整数以外の計算をしようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
                 }
                 //JavaScriptに整数を追加
@@ -828,9 +806,9 @@ function declaratorList(variable_type){
             }
 
         //型がshortの場合
-        }else if(variable_type==27){    
+        }else if(variable_type === TOKEN.SHORT){    
             //整数でなければエラー
-            if(tokenNums[index].tokenNum!=35){
+            if(tokenNums[index].tokenNum !== TOKEN.INTEGER){
                 throw new Error("short型に整数がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
             //JavaScriptに整数を追加
@@ -838,13 +816,13 @@ function declaratorList(variable_type){
             index++;
 
             //演算子である間繰り返す
-            while(tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51 || tokenNums[index].tokenNum==52 || tokenNums[index].tokenNum==53 || tokenNums[index].tokenNum==54){
+            while(isOperatorToken(tokenNums[index].tokenNum)){
                 //演算子を追加
                 JavaScriptCode += tokenNums[index].tokenValue;
                 index++;
                 
                 //整数でなければエラー
-                if(tokenNums[index].tokenNum!=35){
+                if(tokenNums[index].tokenNum !== TOKEN.INTEGER){
                     throw new Error("short型に整数以外の計算をしようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
                 }
                 //JavaScriptに整数を追加
@@ -853,9 +831,9 @@ function declaratorList(variable_type){
             }
 
         //型がlongの場合
-        }else if(variable_type==28){    
+        }else if(variable_type === TOKEN.LONG){    
             //整数でなければエラー
-            if(tokenNums[index].tokenNum!=35){
+            if(tokenNums[index].tokenNum !== TOKEN.INTEGER){
                 throw new Error("long型に整数がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
             //JavaScriptに整数を追加
@@ -863,12 +841,12 @@ function declaratorList(variable_type){
             index++;
 
             //演算子である間繰り返す
-            while(tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51 || tokenNums[index].tokenNum==52 || tokenNums[index].tokenNum==53 || tokenNums[index].tokenNum==54){
+            while(isOperatorToken(tokenNums[index].tokenNum)){
                 //演算子を追加
                 JavaScriptCode += tokenNums[index].tokenValue;
                 index++;
                 //整数でなければエラー
-                if(tokenNums[index].tokenNum!=35){
+                if(tokenNums[index].tokenNum !== TOKEN.INTEGER){
                     throw new Error("long型に整数以外の計算をしようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
                 }
                 //JavaScriptに整数を追加
@@ -877,27 +855,27 @@ function declaratorList(variable_type){
             }
 
         //型がfloatの場合
-        }else if(variable_type==29){
+        }else if(variable_type === TOKEN.FLOAT){
             //実数でなければエラー
-            if(tokenNums[index].tokenNum!=36){
+            if(tokenNums[index].tokenNum !== TOKEN.REAL){
                 throw new Error("float型に実数がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
             index++;
 
             //演算子である間繰り返す
-            while(tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51 || tokenNums[index].tokenNum==52 || tokenNums[index].tokenNum==53 || tokenNums[index].tokenNum==54){
+            while(isOperatorToken(tokenNums[index].tokenNum)){
                 index++;
                 //実数でなければエラー
-                if(tokenNums[index].tokenNum!=36){
+                if(tokenNums[index].tokenNum !== TOKEN.REAL){
                     throw new Error("float型に実数以外の計算をしようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
                 }
                 index++;
             }
 
         //型がdoubleの場合
-        }else if(variable_type==30){
+        }else if(variable_type === TOKEN.DOUBLE){
             //実数でなければエラー
-            if(tokenNums[index].tokenNum!=36){
+            if(tokenNums[index].tokenNum !== TOKEN.REAL){
                 throw new Error("double型に実数がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
@@ -917,13 +895,13 @@ function declaratorList(variable_type){
             index++;
 
             //演算子である間繰り返す
-            while(tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51 || tokenNums[index].tokenNum==52 || tokenNums[index].tokenNum==53 || tokenNums[index].tokenNum==54){
+            while(isOperatorToken(tokenNums[index].tokenNum)){
 
                 //演算子を追加
                 JavaScriptCode += tokenNums[index].tokenValue;
                 index++;
                 //実数でなければエラー
-                if(tokenNums[index].tokenNum!=36){
+                if(tokenNums[index].tokenNum !== TOKEN.REAL){
                     throw new Error("double型に実数以外の計算をしようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
                 }
 
@@ -934,25 +912,25 @@ function declaratorList(variable_type){
             }
 
         //型がbooleanの場合
-        }else if(variable_type==31){
+        }else if(variable_type === TOKEN.BOOLEAN){
             //trueまたはfalseでなければエラー
-            if(tokenNums[index].tokenNum!=38 && tokenNums[index].tokenNum!=39){
+            if(tokenNums[index].tokenNum !== TOKEN.TRUE && tokenNums[index].tokenNum !== TOKEN.FALSE){
                 throw new Error("boolean型にtrueまたはfalseがありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
             index++;
         
         //型がcharの場合
-        }else if(variable_type==32){
+        }else if(variable_type === TOKEN.CHAR){
             //文字でなければエラー
-            if(tokenNums[index].tokenNum!=41){
+            if(tokenNums[index].tokenNum !== TOKEN.CHAR_LITERAL){
                 throw new Error("char型に文字がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
             index++;
 
         //型がStringの場合
-        }else if(variable_type==33){
+        }else if(variable_type === TOKEN.STRING){
             //文字列でなければエラー
-            if(tokenNums[index].tokenNum!=37){
+            if(tokenNums[index].tokenNum !== TOKEN.STRING_LITERAL){
                 throw new Error("String型に文字列がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
@@ -961,32 +939,32 @@ function declaratorList(variable_type){
             index++;
 
             //プラスがあれば文字列の連結
-            if(tokenNums[index].tokenNum==50){
+            if(tokenNums[index].tokenNum === TOKEN.PLUS){
                 index++;
                 //文字列でなければエラー
-                if(tokenNums[index].tokenNum!=37){
+                if(tokenNums[index].tokenNum !== TOKEN.STRING_LITERAL){
                     throw new Error("String型ではないものが連結されています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
                 }
             }
 
         //型がArrayListの場合
-        }else if(variable_type==34){
+        }else if(variable_type === TOKEN.ARRAYLIST){
             //newでなければエラー
-            if(tokenNums[index].tokenNum!=13){
+            if(tokenNums[index].tokenNum !== TOKEN.NEW){
                 throw new Error("ArrayList型にnewがありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
             index++;
 
             //ArrayListでなければエラー
-            if(tokenNums[index].tokenNum!=34){
+            if(tokenNums[index].tokenNum !== TOKEN.ARRAYLIST){
                 throw new Error("ArrayList型にArrayListがありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
             index++;
 
             //<でなければエラー
-            if(tokenNums[index].tokenNum!=61){
+            if(tokenNums[index].tokenNum !== TOKEN.LT){
                 throw new Error("ArrayList型に<がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
@@ -996,33 +974,33 @@ function declaratorList(variable_type){
             type();
 
             //>でなければエラー
-            if(tokenNums[index].tokenNum!=62){
+            if(tokenNums[index].tokenNum !== TOKEN.GT){
                 throw new Error("ArrayList型に>がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
             index++;
 
             //(でなければエラー
-            if(tokenNums[index].tokenNum!=55){
+            if(tokenNums[index].tokenNum !== TOKEN.LPAREN){
                 throw new Error("ArrayList型に(がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
             index++;
 
             //整数または識別子であれば次のトークンへ
-            if(tokenNums[index].tokenNum==35 || tokenNums[index].tokenNum==1){
+            if(tokenNums[index].tokenNum === TOKEN.INTEGER || tokenNums[index].tokenNum === TOKEN.IDENTIFIER){
                 index++;
             }
 
             //)でなければエラー
-            if(tokenNums[index].tokenNum!=56){
+            if(tokenNums[index].tokenNum !== TOKEN.RPAREN){
                 throw new Error("ArrayList型に)がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
         //識別子の場合    
-        }else if(variable_type==1){
+        }else if(variable_type === TOKEN.IDENTIFIER){
 
             //newでなければエラー
-            if(tokenNums[index].tokenNum!=13){
+            if(tokenNums[index].tokenNum !== TOKEN.NEW){
                 throw new Error("クラス型にnewがありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
@@ -1032,7 +1010,7 @@ function declaratorList(variable_type){
             index++;
 
             //クラス名でなければエラー
-            if(tokenNums[index].tokenNum!=1){
+            if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
                 throw new Error("クラス型にクラス名がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
             }
 
@@ -1054,9 +1032,9 @@ function declaratorList(variable_type){
             index++;
 
             //()があれば次のトークンへ
-            if(tokenNums[index].tokenNum==55){
+            if(tokenNums[index].tokenNum === TOKEN.LPAREN){
                 index++;
-                if(tokenNums[index].tokenNum!=56){
+                if(tokenNums[index].tokenNum !== TOKEN.RPAREN){
                     throw new Error("()で終わっていません"+tokenNums[index].tokenNum+"配列の添字:"+index);
                 }
 
@@ -1381,7 +1359,7 @@ function declaratorList(variable_type){
     }
 
     //,があればもう一度宣言子の並びの関数へ
-    if(tokenNums[index].tokenNum==63){
+    if(tokenNums[index].tokenNum === TOKEN.COMMA){
         //JavaScriptに,を追加
         JavaScriptCode += ",";
         index++;
