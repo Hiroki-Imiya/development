@@ -727,7 +727,7 @@ function declaratorList(variable_type){
     let variable_name;
 
     //識別子でなければエラー
-    if(tokenNums[index].tokenNum!=1){
+    if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
         throw new Error("識別子がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -2190,13 +2190,13 @@ function printfStatement(){
     JavaScriptCode += "message.value+=";
 
     //(でなければエラー
-    if(tokenNums[index].tokenNum!=55){
+    if(tokenNums[index].tokenNum !== TOKEN.LPAREN){
         throw new Error("(がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
     index++;
 
     //文字列がなければエラー
-    if(tokenNums[index].tokenNum!=37){
+    if(tokenNums[index].tokenNum !== TOKEN.STRING_LITERAL){
         throw new Error("printf文の書式文がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
 
@@ -2233,7 +2233,7 @@ function printfStatement(){
     console.log(formatStrings);
 
     //,がある間繰り返す
-    while(tokenNums[index].tokenNum==63){
+    while(tokenNums[index].tokenNum === TOKEN.COMMA){
         index++;
 
         //前から指定子を探す
@@ -2249,27 +2249,10 @@ function printfStatement(){
         
 
         //識別子または文字列であれば次のトークンへ
-        if(tokenNums[index].tokenNum==1 || tokenNums[index].tokenNum==37){
+        if(tokenNums[index].tokenNum === TOKEN.IDENTIFIER || tokenNums[index].tokenNum === TOKEN.STRING_LITERAL){
             //識別子の場合
-            if(tokenNums[index].tokenNum==1){
-                //フィールド値が存在していない場合
-                if(fieldIdentifiers.length==0){
-                    //そのまま追加
-                    formatStrings[descriptor_index] = tokenNums[index].tokenValue;
-                }else{
-                    for(let i=0;i<fieldIdentifiers.length;i++){
-                        //フィールド値の場合はthis.を付けて追加
-                        if(fieldIdentifiers[i].fieldName==tokenNums[index].tokenValue){
-                            formatStrings[descriptor_index] = "this."+tokenNums[index].tokenValue;
-                            break;
-                        }
-
-                        //最後まで探してなければそのまま追加
-                        if(i==fieldIdentifiers.length-1){
-                            formatStrings[descriptor_index] = tokenNums[index].tokenValue;
-                        }
-                    }
-                }
+            if(tokenNums[index].tokenNum === TOKEN.IDENTIFIER){
+                formatStrings[descriptor_index] = formatIdentifier(tokenNums[index].tokenValue);
 
             //文字列の場合
             }else{
@@ -2280,7 +2263,7 @@ function printfStatement(){
 
 
         //演算子があれば演算子の関数へ
-        if(tokenNums[index].tokenNum==50 || tokenNums[index].tokenNum==51 || tokenNums[index].tokenNum==52 || tokenNums[index].tokenNum==53 || tokenNums[index].tokenNum==54){
+        if(isOperatorToken(tokenNums[index].tokenNum)){
             index++;
             operatorStatement();
         }
@@ -2299,7 +2282,7 @@ function printfStatement(){
     }
 
     //)でなければエラー
-    if(tokenNums[index].tokenNum!=56){
+    if(tokenNums[index].tokenNum !== TOKEN.RPAREN){
         throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
     }
     index++;
