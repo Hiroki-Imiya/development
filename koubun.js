@@ -1622,15 +1622,11 @@ function forStatement(){
     JavaScriptCode += ";\n";
 
     //;でなければエラー
-    if(tokenNums[index].tokenNum !== TOKEN.SEMICOLON){
-        throw new Error("for文の;がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-    }
+    expectToken(TOKEN.SEMICOLON, "for文の;がありません");
 
-    //Javascriptに現在の行数を格納する関数を追加
-    JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
-
-    //JavaScriptにyieldを追加
-    JavaScriptCode += "yield;\n\n";
+    //現在の行数を格納する関数を追加
+    addLineTrackingAndYield();
+    JavaScriptCode += "\n";
 
     //JavaScriptにfor( ;を追加
     JavaScriptCode += "for( ;";
@@ -1640,9 +1636,7 @@ function forStatement(){
     comparisonStatement();
 
     //;でなければエラー
-    if(tokenNums[index].tokenNum !== TOKEN.SEMICOLON){
-        throw new Error(";がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-    }
+    expectToken(TOKEN.SEMICOLON, ";がありません");
 
     //JavaScriptに;を追加
     JavaScriptCode += ";";
@@ -1658,32 +1652,25 @@ function forStatement(){
     forFlag = false;
 
     //)でなければエラー
-    if(tokenNums[index].tokenNum !== TOKEN.RPAREN){
-        throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-    }
+    expectToken(TOKEN.RPAREN, ")がありません");
 
     index++;
 
     //{でなければエラー
-    if(tokenNums[index].tokenNum !== TOKEN.LBRACE){
-        throw new Error("{がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-    }
+    expectToken(TOKEN.LBRACE, "{がありません");
     //JavaScriptに;と改行を追加
     JavaScriptCode += ";\n";
-    //Javascriptに現在の行数を格納する関数を追加
-    JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
-    //JavaScriptにyieldを追加
-    JavaScriptCode += "yield;\n\n";
+    //現在の行数を格納する関数を追加
+    addLineTrackingAndYield();
+    JavaScriptCode += "\n";
     index++;
 
     //}が来るまで繰り返す
     while(tokenNums[index].tokenNum !== TOKEN.RBRACE){
         //文の関数
         statement();
-        //Javascriptに現在の行数を格納する関数を追加
-        JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
-        //Javascriptにyieldを追加
-        JavaScriptCode += "yield;\n";
+        //現在の行数を格納する関数を追加
+        addLineTrackingAndYield();
         index++;
 
         //もし途中でindexがtokenNumsの長さを超えた場合はエラー
@@ -1694,13 +1681,8 @@ function forStatement(){
 
     //JavaScriptに}を追加
     JavaScriptCode += "}\n";
-    //Javascirptに現在のスコープの変数を削除する関数を追加
-    JavaScriptCode += "deleteVariable("+scope+");\n";
-
-    //Javascriptに現在の行数を格納する関数を追加
-    JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
-
-    JavaScriptCode += "yield;\n";
+    //現在のスコープの変数を削除する関数を追加
+    addScopeCleanup();
     scope--;
 }
 
