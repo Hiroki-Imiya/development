@@ -1294,9 +1294,7 @@ function ifStatement(){
     //ifをJavaScriptに追加
     JavaScriptCode += "if";
     //(でなければエラー
-    if(tokenNums[index].tokenNum !== TOKEN.LPAREN){
-        throw new Error("(がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-    }
+    expectToken(TOKEN.LPAREN, "(がありません");
 
     //JavaScriptに(を追加
     JavaScriptCode += "(";
@@ -1306,9 +1304,7 @@ function ifStatement(){
     comparisonStatement();
 
     //)でなければエラー
-    if(tokenNums[index].tokenNum !== TOKEN.RPAREN){
-        throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-    }
+    expectToken(TOKEN.RPAREN, ")がありません");
 
     //JavaScriptに)を追加
     JavaScriptCode += ")";
@@ -1437,9 +1433,7 @@ function ifStatement(){
 function comparisonStatement(){
 
     //識別子でなければエラー
-    if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
-        throw new Error("識別子がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-    }
+    expectToken(TOKEN.IDENTIFIER, "識別子がありません");
 
     //JavaScriptに識別子を追加
     JavaScriptCode += tokenNums[index].tokenValue+" ";
@@ -1455,9 +1449,7 @@ function comparisonStatement(){
     }
 
     //比較演算子でなければエラー
-    if(tokenNums[index].tokenNum !== TOKEN.LT && tokenNums[index].tokenNum !== TOKEN.GT && tokenNums[index].tokenNum !== TOKEN.EQUALS){
-        throw new Error("比較演算子がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-    }
+    expectOneOfTokens([TOKEN.LT, TOKEN.GT, TOKEN.EQUALS], "比較演算子がありません");
 
     //JavaScriptに比較演算子を追加
     JavaScriptCode += tokenNums[index].tokenValue;
@@ -1467,9 +1459,7 @@ function comparisonStatement(){
         
         index++;
         //=でなければエラー
-        if(tokenNums[index].tokenNum !== TOKEN.EQUALS){
-            throw new Error("==でない比較演算子があります.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-        }
+        expectToken(TOKEN.EQUALS, "==でない比較演算子があります");
 
         //JavaScriptに=を追加
         JavaScriptCode += "=";
@@ -1541,9 +1531,7 @@ function whileStatement(){
     JavaScriptCode += "while";
 
     //(でなければエラー
-    if(tokenNums[index].tokenNum !== TOKEN.LPAREN){
-        throw new Error("(がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-    }
+    expectToken(TOKEN.LPAREN, "(がありません");
 
     //JavaScriptに(を追加
     JavaScriptCode += "(";
@@ -1553,18 +1541,14 @@ function whileStatement(){
     comparisonStatement();
 
     //)でなければエラー
-    if(tokenNums[index].tokenNum !== TOKEN.RPAREN){
-        throw new Error(")がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-    }
+    expectToken(TOKEN.RPAREN, ")がありません");
 
     //JavaScriptに)を追加
     JavaScriptCode += ")";
     index++;
 
     //{でなければエラー
-    if(tokenNums[index].tokenNum !== TOKEN.LBRACE){
-        throw new Error("{がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-    }
+    expectToken(TOKEN.LBRACE, "{がありません");
 
     //JavaScriptに{を追加
     JavaScriptCode += "{\n";
