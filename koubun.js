@@ -1346,17 +1346,11 @@ function ifStatement(){
     if(tokenNums[index].tokenNum !== TOKEN.LBRACE){
         //JavaScriptに{を追加
         JavaScriptCode += "{\n";
-        scope++;
-        maxScope =scope;
+        incrementScope();
         //文の関数
         statement();
-        //Javascirptに現在のスコープの変数を削除する関数を追加
-        JavaScriptCode += "deleteVariable("+scope+");\n";
-
-        //Javascriptに現在の行数を格納する関数を追加
-        JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
-
-        JavaScriptCode += "yield;\n";
+        //現在のスコープの変数を削除する関数を追加
+        addScopeCleanup();
         //JavaScriptに}を追加
         JavaScriptCode += "}";
         scope--;
@@ -1365,25 +1359,17 @@ function ifStatement(){
     }else{
         //JavaScriptに{を追加
         JavaScriptCode += "{\n";
-        index++
-        scope++;
-        maxScope =scope;
+        index++;
+        incrementScope();
         //文の関数
         statement();
 
         index++;
 
         //}でなければエラー
-        if(tokenNums[index].tokenNum !== TOKEN.RBRACE){
-            throw new Error("}がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-        }
-        //Javascirptに現在のスコープの変数を削除する関数を追加
-        JavaScriptCode += "deleteVariable("+scope+");\n";
-
-        //Javascriptに現在の行数を格納する関数を追加
-        JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
-
-        JavaScriptCode += "yield;\n";
+        expectToken(TOKEN.RBRACE, "}がありません");
+        //現在のスコープの変数を削除する関数を追加
+        addScopeCleanup();
         //JavaScriptに}を追加
         JavaScriptCode += "}";
         scope--;
@@ -1585,17 +1571,14 @@ function whileStatement(){
     //JavaScriptに{を追加
     JavaScriptCode += "{\n";
     index++;
-    scope++;
-    maxScope =scope;
+    incrementScope();
 
     //}が来るまで繰り返す
     while(tokenNums[index].tokenNum !== TOKEN.RBRACE){
         //文の関数
         statement();
-        //Javascriptに現在の行数を格納する関数を追加
-        JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
-        //Javascriptにyieldを追加
-        JavaScriptCode += "yield;\n";
+        //現在の行数を格納する関数を追加
+        addLineTrackingAndYield();
         index++;
 
         //もし途中でindexがtokenNumsの長さを超えた場合はエラー
@@ -1607,13 +1590,8 @@ function whileStatement(){
 
     //JavaScriptに}を追加
     JavaScriptCode += "}\n";
-    //Javascirptに現在のスコープの変数を削除する関数を追加
-    JavaScriptCode += "deleteVariable("+scope+");\n";
-
-    //Javascriptに現在の行数を格納する関数を追加
-    JavaScriptCode += "saveLine("+tokenNums[index].row+");\n";
-
-    JavaScriptCode += "yield;\n";
+    //現在のスコープの変数を削除する関数を追加
+    addScopeCleanup();
     scope--;
 }
 
@@ -1622,13 +1600,10 @@ function whileStatement(){
 //返り値：なし
 function forStatement(){
 
-    scope++;
-    maxScope =scope;
+    incrementScope();
 
     //(でなければエラー
-    if(tokenNums[index].tokenNum !== TOKEN.LPAREN){
-        throw new Error("(がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-    }
+    expectToken(TOKEN.LPAREN, "(がありません");
 
     index++;
 
