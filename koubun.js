@@ -1,4 +1,18 @@
-/*入力されたプログラムの構文解析を行うJavaScript */
+/**
+ * koubun.js - 構文解析モジュール
+ * 
+ * このファイルは、入力されたJava風のプログラムコードを構文解析し、
+ * JavaScriptコードに変換する機能を提供します。
+ * 
+ * 主な機能：
+ * - トークン解析結果からクラス構造を抽出
+ * - メソッド、フィールド、継承関係の解析
+ * - JavaScriptのジェネレーター関数への変換
+ * - Mermaid形式のクラス図生成
+ * - 変数のスコープ管理とステップ実行サポート
+ * 
+ * @module koubun
+ */
 
 // トークン番号の定数定義
 const TOKEN = {
@@ -58,6 +72,10 @@ const TOKEN = {
     EQUALS: 70
 };
 
+// ========================================
+// グローバル変数
+// ========================================
+
 //関数の引数かどうかのフラグ
 let functionFlag = false;
 
@@ -85,53 +103,61 @@ let classFieldFlag = false;
 //呼び出し元が返り値かどうかのフラグ
 let returnFlag = false;
 
-//フィールド値やメソッドpublicかどうかのフラグ
-//publicの場合はtrue
-//privateの場合はfalse
+//フィールド値やメソッドがpublicかどうかのフラグ
+//publicの場合はtrue、privateの場合はfalse
 let publicFlag = false;
 
 //フィールド値やメソッドが静的かどうかのフラグ
-//静的の場合はtrue
-//静的でない場合はfalse
+//静的の場合はtrue、静的でない場合はfalse
 let staticFlag = false;
 
 //フィールド値の識別子を格納する配列
-//所属しているクラス名:className
-//名前:filedName
-//型:type
-//アクセス修飾子:access
-//静的かどうか:static
+//各要素の構造：
+// - className: 所属しているクラス名
+// - fieldName: フィールド名
+// - type: 型
+// - access: アクセス修飾子（true=public, false=private）
+// - static: 静的かどうか（true=static, false=非static）
 let fieldIdentifiers = [];
 
 //フィールド宣言の変数表への文を一時的に格納する変数
 let fieldDeclarationCode = "";
 
 //登場したクラス名を格納する配列
-//クラス名:className
-//main関数を持つかどうか:mainFlag
+//各要素の構造：
+// - className: クラス名
+// - mainFlag: main関数を持つかどうか
 let classes = [];
 
 //クラスの添字
 let classIndex = 0;
 
 //登場したメソッド名を保存する配列
-//所属しているクラス名:className
-//メソッド名:methodName
-//アクセス修飾子:publicFlag
-//静的かどうか:staticFlag
-//引数の名前:argumentName[]
-//返り値の型:returnType
+//各要素の構造：
+// - className: 所属しているクラス名
+// - methodName: メソッド名
+// - access: アクセス修飾子（true=public, false=private）
+// - static: 静的かどうか（true=static, false=非static）
+// - argumentName: 引数の名前の配列
+// - returnType: 返り値の型
 let method = [];
 
 //クラスの親と子の関係を示す配列
-//親クラス名:parent
-//子クラス名:child
+//各要素の構造：
+// - parent: 親クラス名
+// - child: 子クラス名
 let classRelation = [];
 
-//クラスのインスタンスを示す配列
-//持っているクラス名:className
-//インスタンス化されているクラス名:relation
+//クラスのインスタンスを示す配列（相互関係）
+//各要素の構造：
+// - className: 持っているクラス名
+// - relation: インスタンス化されているクラス名
 let mutualRelation = [];
+
+// ========================================
+// ヘルパー関数
+// ========================================
+
 
 // ヘルパー関数: トークン番号が型かどうかをチェック
 function isTypeToken(tokenNum) {
@@ -311,9 +337,15 @@ function addLineTrackingAndYield() {
     JavaScriptCode += "yield;\n";
 }
 
-//構文解析を行う関数
-//引数：なし
-//返り値：クラス名
+// ========================================
+// メイン構文解析関数
+// ========================================
+
+/**
+ * 構文解析を行う関数
+ * トークン配列を解析し、JavaScriptコードとクラス図を生成する
+ * @returns {string} main関数を持つクラス名
+ */
 function syntaxAnalysis(){
 
     //スコープを初期化
