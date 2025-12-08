@@ -214,6 +214,80 @@ function addVariableToTable(variableName, variableType, isArray) {
     }
 }
 
+// ヘルパー関数: 変数オブジェクトを作成して配列に追加
+// 変数の型、名前、初期値、スコープを受け取り、変数配列に追加する
+function createAndPushVariable(variableName, typeString, defaultValue) {
+    const variable = {
+        Name: variableName,
+        Type: typeString,
+        Value: defaultValue,
+        Scope: scope
+    };
+    variables.push(variable);
+    return variable;
+}
+
+// ヘルパー関数: 整数型の初期化を処理する
+// int, byte, short, long型の初期化処理を統一
+function handleIntegerTypeInitialization(typeName, allowIdentifier = false) {
+    // 整数または識別子(必要に応じて)でなければエラー
+    if(allowIdentifier){
+        if(tokenNums[index].tokenNum !== TOKEN.INTEGER && tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
+            throw new Error(`${typeName}型に整数がありません.トークン名:${tokenNums[index].tokenNum} 配列の添字:${index}`);
+        }
+    } else {
+        if(tokenNums[index].tokenNum !== TOKEN.INTEGER){
+            throw new Error(`${typeName}型に整数がありません.トークン名:${tokenNums[index].tokenNum} 配列の添字:${index}`);
+        }
+    }
+    
+    // JavaScriptに整数を追加
+    JavaScriptCode += tokenNums[index].tokenValue;
+    index++;
+
+    // 演算子である間繰り返す
+    while(isOperatorToken(tokenNums[index].tokenNum)){
+        // 演算子を追加
+        JavaScriptCode += tokenNums[index].tokenValue;
+        index++;
+
+        // 整数または識別子でなければエラー
+        if(allowIdentifier){
+            if(tokenNums[index].tokenNum !== TOKEN.INTEGER && tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
+                throw new Error(`${typeName}型に整数以外の計算をしようとしています.トークン名:${tokenNums[index].tokenNum} 配列の添字:${index}`);
+            }
+        } else {
+            if(tokenNums[index].tokenNum !== TOKEN.INTEGER){
+                throw new Error(`${typeName}型に整数以外の計算をしようとしています.トークン名:${tokenNums[index].tokenNum} 配列の添字:${index}`);
+            }
+        }
+        
+        // JavaScriptに整数を追加
+        JavaScriptCode += tokenNums[index].tokenValue;
+        index++;
+    }
+}
+
+// ヘルパー関数: スコープを増加させる
+// スコープを1増やし、必要に応じて最大スコープも更新する
+function incrementScope() {
+    scope++;
+    // 増やした後が最大値より小さい場合は最大値より大きくする
+    if(scope <= maxScope){
+        scope = maxScope + 1;
+    }
+    // 最大値を更新
+    maxScope = scope;
+}
+
+// ヘルパー関数: 現在のスコープをクリーンアップするコードを追加
+// スコープの変数を削除し、現在の行を保存し、yieldを追加
+function addScopeCleanup() {
+    JavaScriptCode += "deleteVariable(" + scope + ");\n";
+    JavaScriptCode += "saveLine(" + tokenNums[index].row + ");\n";
+    JavaScriptCode += "yield;\n";
+}
+
 //構文解析を行う関数
 //引数：なし
 //返り値：クラス名
@@ -590,14 +664,7 @@ function classDefinition(){
 
             JavaScriptCode +=tmp_JavaScriptCode;
 
-            scope++;
-            //増やした後が最大値より小さい場合は最大値より大きくする
-            if(scope<=maxScope){
-                scope=maxScope+1;
-            }
-
-            //最大値を更新
-            maxScope=scope;
+            incrementScope();
 
             //JavaScriptに(を追加
             JavaScriptCode += "(";
@@ -757,105 +824,19 @@ function declaratorList(variable_type){
 
         //型がintの場合
         if(variable_type === TOKEN.INT){
-            //整数または識別子でなければエラー
-            if(tokenNums[index].tokenNum !== TOKEN.INTEGER && tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
-                throw new Error("int型に整数がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-            }
-
-            //JavaScriptに整数を追加
-            JavaScriptCode += tokenNums[index].tokenValue;
-
-            index++;
-
-            //演算子である間繰り返す
-            while(isOperatorToken(tokenNums[index].tokenNum)){
-                //演算子を追加
-                JavaScriptCode += tokenNums[index].tokenValue;
-                
-                index++;
-
-                //整数または識別子でなければエラー
-                if(tokenNums[index].tokenNum !== TOKEN.INTEGER && tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
-                    throw new Error("int型に整数以外の計算をしようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-                }
-                //JavaScriptに整数を追加
-                JavaScriptCode += tokenNums[index].tokenValue;
-                index++;
-            }
+            handleIntegerTypeInitialization("int", true);
 
         //型がbyteの場合
         }else if(variable_type === TOKEN.BYTE){    
-            //整数でなければエラー
-            if(tokenNums[index].tokenNum !== TOKEN.INTEGER){
-                throw new Error("byte型に整数がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-            }
-            //JavaScriptに整数を追加
-            JavaScriptCode += tokenNums[index].tokenValue;
-            index++;
-            
-            //演算子である間繰り返す
-            while(isOperatorToken(tokenNums[index].tokenNum)){
-                //演算子を追加
-                JavaScriptCode += tokenNums[index].tokenValue;
-                index++;
-
-                //整数でなければエラー
-                if(tokenNums[index].tokenNum !== TOKEN.INTEGER){
-                    throw new Error("byte型に整数以外の計算をしようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-                }
-                //JavaScriptに整数を追加
-                JavaScriptCode += tokenNums[index].tokenValue;
-                index++;
-            }
+            handleIntegerTypeInitialization("byte", false);
 
         //型がshortの場合
         }else if(variable_type === TOKEN.SHORT){    
-            //整数でなければエラー
-            if(tokenNums[index].tokenNum !== TOKEN.INTEGER){
-                throw new Error("short型に整数がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-            }
-            //JavaScriptに整数を追加
-            JavaScriptCode += tokenNums[index].tokenValue;
-            index++;
-
-            //演算子である間繰り返す
-            while(isOperatorToken(tokenNums[index].tokenNum)){
-                //演算子を追加
-                JavaScriptCode += tokenNums[index].tokenValue;
-                index++;
-                
-                //整数でなければエラー
-                if(tokenNums[index].tokenNum !== TOKEN.INTEGER){
-                    throw new Error("short型に整数以外の計算をしようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-                }
-                //JavaScriptに整数を追加
-                JavaScriptCode += tokenNums[index].tokenValue;
-                index++;
-            }
+            handleIntegerTypeInitialization("short", false);
 
         //型がlongの場合
         }else if(variable_type === TOKEN.LONG){    
-            //整数でなければエラー
-            if(tokenNums[index].tokenNum !== TOKEN.INTEGER){
-                throw new Error("long型に整数がありません.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-            }
-            //JavaScriptに整数を追加
-            JavaScriptCode += tokenNums[index].tokenValue;
-            index++;
-
-            //演算子である間繰り返す
-            while(isOperatorToken(tokenNums[index].tokenNum)){
-                //演算子を追加
-                JavaScriptCode += tokenNums[index].tokenValue;
-                index++;
-                //整数でなければエラー
-                if(tokenNums[index].tokenNum !== TOKEN.INTEGER){
-                    throw new Error("long型に整数以外の計算をしようとしています.トークン名:"+tokenNums[index].tokenNum+"配列の添字:"+index);
-                }
-                //JavaScriptに整数を追加
-                JavaScriptCode += tokenNums[index].tokenValue;
-                index++;
-            }
+            handleIntegerTypeInitialization("long", false);
 
         //型がfloatの場合
         }else if(variable_type === TOKEN.FLOAT){
@@ -1068,50 +1049,15 @@ function declaratorList(variable_type){
                 arrayFlag = false; //フラグを戻す
             }
         }else if(variable_type === TOKEN.SHORT){
-            let variable = {
-                Name:variable_name,
-                Type:"short",
-                Value:0,
-                Scope:scope
-            };
-            //変数を配列に格納
-            variables.push(variable);
+            createAndPushVariable(variable_name, "short", 0);
         }else if(variable_type === TOKEN.LONG){
-            let variable = {
-                Name:variable_name,
-                Type:"long",
-                Value:0,
-                Scope:scope
-            };
-            //変数を配列に格納
-            variables.push(variable);
+            createAndPushVariable(variable_name, "long", 0);
         }else if(variable_type === TOKEN.FLOAT){
-            let variable = {
-                Name:variable_name,
-                Type:"float",
-                Value:0.0,
-                Scope:scope
-            };
-            //変数を配列に格納
-            variables.push(variable);
+            createAndPushVariable(variable_name, "float", 0.0);
         }else if(variable_type === TOKEN.BOOLEAN){
-            let variable = {
-                Name:variable_name,
-                Type:"boolean",
-                Value:false,
-                Scope:scope
-            };
-            //変数を配列に格納
-            variables.push(variable);
+            createAndPushVariable(variable_name, "boolean", false);
         }else if(variable_type === TOKEN.ARRAYLIST){
-            let variable = {
-                Name:variable_name,
-                Type:"ArrayList",
-                Value:[],
-                Scope:scope
-            };
-            //変数を配列に格納
-            variables.push(variable);
+            createAndPushVariable(variable_name, "ArrayList", []);
         }
     
 
@@ -1149,50 +1095,15 @@ function declaratorList(variable_type){
                 arrayFlag = false; //フラグを戻す
             }
         }else if(variable_type === TOKEN.SHORT){
-            let variable = {
-                Name:variable_name,
-                Type:"short",
-                Value:0,
-                Scope:scope
-            };
-            //変数を配列に格納
-            variables.push(variable);
+            createAndPushVariable(variable_name, "short", 0);
         }else if(variable_type === TOKEN.LONG){
-            let variable = {
-                Name:variable_name,
-                Type:"long",
-                Value:0,
-                Scope:scope
-            };
-            //変数を配列に格納
-            variables.push(variable);
+            createAndPushVariable(variable_name, "long", 0);
         }else if(variable_type === TOKEN.FLOAT){
-            let variable = {
-                Name:variable_name,
-                Type:"float",
-                Value:0.0,
-                Scope:scope
-            };
-            //変数を配列に格納
-            variables.push(variable);
+            createAndPushVariable(variable_name, "float", 0.0);
         }else if(variable_type === TOKEN.BOOLEAN){
-            let variable = {
-                Name:variable_name,
-                Type:"boolean",
-                Value:false,
-                Scope:scope
-            };
-            //変数を配列に格納
-            variables.push(variable);
+            createAndPushVariable(variable_name, "boolean", false);
         }else if(variable_type === TOKEN.ARRAYLIST){
-            let variable = {
-                Name:variable_name,
-                Type:"ArrayList",
-                Value:[],
-                Scope:scope
-            };
-            //変数を配列に格納
-            variables.push(variable);
+            createAndPushVariable(variable_name, "ArrayList", []);
         }
 
         //JavaScriptに変数の代入をする文を追加
