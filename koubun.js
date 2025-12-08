@@ -288,6 +288,29 @@ function addScopeCleanup() {
     JavaScriptCode += "yield;\n";
 }
 
+// ヘルパー関数: トークンが期待する型であるかチェック
+// 期待するトークン番号でない場合はエラーを投げる
+function expectToken(expectedTokenNum, errorMessage) {
+    if(tokenNums[index].tokenNum !== expectedTokenNum){
+        throw new Error(`${errorMessage} トークン名:${tokenNums[index].tokenNum} 配列の添字:${index}`);
+    }
+}
+
+// ヘルパー関数: トークンが期待する型のいずれかであるかチェック
+// 期待するトークン番号の配列のいずれでもない場合はエラーを投げる
+function expectOneOfTokens(expectedTokenNums, errorMessage) {
+    if(!expectedTokenNums.includes(tokenNums[index].tokenNum)){
+        throw new Error(`${errorMessage} トークン名:${tokenNums[index].tokenNum} 配列の添字:${index}`);
+    }
+}
+
+// ヘルパー関数: 現在の行を保存してyieldを追加
+// ステップ実行のためのコードを追加
+function addLineTrackingAndYield() {
+    JavaScriptCode += "saveLine(" + tokenNums[index].row + ");\n";
+    JavaScriptCode += "yield;\n";
+}
+
 //構文解析を行う関数
 //引数：なし
 //返り値：クラス名
@@ -493,25 +516,19 @@ function program(){
 function importStatement(){
 
     //識別子でなければエラー
-    if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
-        throw new Error("importの後に識別子がありません");
-    }
+    expectToken(TOKEN.IDENTIFIER, "importの後に識別子がありません");
     index++;
 
     //トークンが.の間繰り返す
     while(tokenNums[index].tokenNum === TOKEN.DOT){
         index++;
         //識別子またはArrayListでなければエラー
-        if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER && tokenNums[index].tokenNum !== TOKEN.ARRAYLIST){
-            throw new Error("import文の.の後に識別子またはArrayListがありません");
-        }
+        expectOneOfTokens([TOKEN.IDENTIFIER, TOKEN.ARRAYLIST], "import文の.の後に識別子またはArrayListがありません");
         index++;
     }
 
     //;でなければエラー
-    if(tokenNums[index].tokenNum !== TOKEN.SEMICOLON){
-        throw new Error("import文が;で終わっていません"+tokenNums[index].tokenNum+"配列の添字:"+index);
-    }
+    expectToken(TOKEN.SEMICOLON, "import文が;で終わっていません");
 
 }
 
@@ -521,18 +538,14 @@ function importStatement(){
 function classDefinition(){
 
     //クラスでなければエラー
-    if(tokenNums[index].tokenNum !== TOKEN.CLASS){
-        throw new Error("classがありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
-    }
+    expectToken(TOKEN.CLASS, "classがありません");
 
     //JavaScriptにclassを追加
     JavaScriptCode += "class ";
     index++;
 
     //クラス名でなければエラー
-    if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
-        throw new Error("クラス名がありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
-    }
+    expectToken(TOKEN.IDENTIFIER, "クラス名がありません");
     //JavaScriptにクラス名を追加
     JavaScriptCode += tokenNums[index].tokenValue+" ";
 
@@ -547,9 +560,7 @@ function classDefinition(){
         index++;
 
         //識別子でなければエラー
-        if(tokenNums[index].tokenNum !== TOKEN.IDENTIFIER){
-            throw new Error("extendsの後に識別子がありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
-        }
+        expectToken(TOKEN.IDENTIFIER, "extendsの後に識別子がありません");
 
         //JavaScriptに親クラス名を追加
         JavaScriptCode += tokenNums[index].tokenValue+" ";
@@ -560,9 +571,7 @@ function classDefinition(){
     }
 
     //{でなければエラー
-    if(tokenNums[index].tokenNum !== TOKEN.LBRACE){
-        throw new Error("{がありません"+tokenNums[index].tokenNum+"配列の添字:"+index);
-    }
+    expectToken(TOKEN.LBRACE, "{がありません");
 
     //JavaScriptに{を追加
     JavaScriptCode += "{\n";
